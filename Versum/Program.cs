@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Versum;
 using Versum.Hubs;
+using Versum.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,6 +24,7 @@ builder.Services.AddCors(options => {
     });
 });
 
+builder.Services.AddScoped<IAuthService, AuthService>();
 var app = builder.Build();
 
 
