@@ -1,12 +1,14 @@
-﻿using Versum.Dtos;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
+using System.Security.Cryptography;
+using System.Text;
+using Versum.Dtos;
 
 namespace Versum.Services
 {
     public interface IAuthService
     {
         Task<(bool Success, string? Error, string? Field)> RegisterAsync(RegisterDto dto);
-        // Metjod returns:
+        // Method returns:
         // bool Success = successful registration
         // string? Error = text of error (or null if everuthing is ok)
         // string? Field = what field has error (or null if everything is ok)
@@ -35,20 +37,27 @@ namespace Versum.Services
             // BCrypt from NuGet packet BCrypt.Net-Next;
 
             string token = Guid.NewGuid().ToString("N");
-            // Generateі unique token for email confirmation
-    
+            // Generates unique token for email confirmation
+            var confLimit = DateTime.UtcNow.AddHours(24); // email confirmation could be valid only during 24 h
+
+            string tokenHash;
+            using (var sha256 = SHA256.Create())
+            {
+                var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(token));
+                tokenHash = Convert.ToBase64String(bytes);
+            }
 
             var user = new User
             {
                 Username = dto.Username,
-               
+
                 PasswordHash = passwordHash,
-               
+
                 Gmail = dto.Gmail,
-               
-                EmailConfirmationToken = token
-                
-               
+
+                EmailConfirmationTokenHash = tokenHash,
+                EmailTokenExpiryDate = confLimit
+
             };
 
             _db.Users.Add(user);
