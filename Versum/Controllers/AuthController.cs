@@ -13,9 +13,12 @@ namespace Versum.Controllers
     {
         private readonly IAuthService _authService;
 
-        public AuthController(IAuthService authService)
+        private readonly IGmailService _gmailService;
+
+        public AuthController(IAuthService authService, IGmailService gmailService)
         {
             _authService = authService;
+            _gmailService = gmailService;
         }
 
    
@@ -34,6 +37,30 @@ namespace Versum.Controllers
             return Ok(new { message = "Реєстрація успішна" });
            
         }
+
+        [HttpPost("login")]
+        public async Task<IActionResult> Login([FromBody] LoginDto dto)// JSON converts to LoginDto object
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);// checks validation attributes from LoginDto -> Smth wrong -> returns error 400
+
+            var (success, resultMessage, userGmail, username) = await _authService.LoginAsync(dto);// calls Service's LoginAsync method and passes dto
+
+            if (!success)
+                return Unauthorized(new { message = resultMessage }); // checks if login fails (wrong password or user) -> returns error 401
+
+            try
+            {
+                await _gmailService.SendLoginNotificationAsync(userGmail, username);// awaits email sending to avoid crashes
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Gmail sending error: {ex.Message}");// logs error but doesn't stop the login process
+            }
+
+            return Ok(new { token = resultMessage, message = "Вхід успішний" });
+        }
+
 
         // Allow to see added users in the table(only for dev to try it out): shall be deleted or changed.
         [HttpGet("users")]
