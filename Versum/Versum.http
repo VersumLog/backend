@@ -1,0 +1,15 @@
+@Versum_HostAddress = https://localhost:7014
+
+### Get all the posts
+GET {{Versum_HostAddress}}/api/posts
+Accept: application/json
+
+### Create first post
+POST {{Versum_HostAddress}}/api/posts
+Content-Type: application/json
+
+{
+  "title": "Test Post",
+  "author": "Ivan Franko",
+  "content": "First post, навіть українською."
+}
