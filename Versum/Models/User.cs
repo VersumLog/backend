@@ -19,8 +19,7 @@ namespace Versum
         public string? EmailConfirmationTokenHash { get; set; } //Unique token Hash which sends on post for confirmation
         public DateTime? EmailTokenExpiryDate { get; set; } // Limit in Time to conf email
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow; // Date and Time when user signed up
-        public string? PasswordResetToken { get; set; }
-        public DateTime? ResetTokenExpires { get; set; }
+
 
     }
 }
