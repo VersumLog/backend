@@ -16,7 +16,7 @@ namespace Versum
   
         {
             modelBuilder.Entity<User>().HasIndex(u => u.Username).IsUnique();
-            modelBuilder.Entity<User>().HasIndex(u => u.Gmail).IsUnique();
+            modelBuilder.Entity<User>().HasIndex(u => u.Email).IsUnique();
             
         }
     }
