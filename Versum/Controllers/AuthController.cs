@@ -61,6 +61,33 @@ namespace Versum.Controllers
             return Ok(new { token = resultMessage, message = "Вхід успішний" });
         }
 
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgotReset([FromBody] ForgotPasswordDto dto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);// checks validation attributes from LoginDto -> Smth wrong -> returns error 400
+            var (success, error) = await _authService.ForgotPasswordAsync(dto);
+            if (!success)
+            {
+                return BadRequest(new { message = error });
+            }
+
+            return Ok(new { message = "Лист надіслано" });
+
+        }
+
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetReset([FromBody] ResetPasswordDto dto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);// checks validation attributes from LoginDto -> Smth wrong -> returns error 400
+            var (success, error) = await _authService.ResetPasswordAsync(dto);
+            if (!success)
+            {
+                return BadRequest(new { message = error });
+            }
+            return Ok(new { message = "Пароль успішно змінено" });
+        }
 
         // Allow to see added users in the table(only for dev to try it out): shall be deleted or changed.
         [HttpGet("users")]
