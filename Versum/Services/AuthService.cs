@@ -13,6 +13,7 @@ namespace Versum.Services
         // string? Error = text of error (or null if everuthing is ok)
         // string? Field = what field has error (or null if everything is ok)
 
+        Task<(bool success, string tokenOrError, string userGmail, string username)> LoginAsync(LoginDto dto);
     }
 
     public class AuthService : IAuthService {
@@ -67,7 +68,36 @@ namespace Versum.Services
 
             return (true, null, null);
           
+
         }
+        public async Task<(bool success, string tokenOrError, string userGmail, string username)> LoginAsync(LoginDto dto)
+        {
+           
+            var user = await _db.Users.FirstOrDefaultAsync(u =>
+                u.Gmail == dto.UsernameOrGmail || u.Username == dto.UsernameOrGmail);
+
+            if (user == null)
+            {
+                
+                return (false, "Невірний логін або пароль", string.Empty, string.Empty);
+            }
+
+            
+            bool isPasswordValid = BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash);
+
+            if (!isPasswordValid)
+            {
+                
+                return (false, "Невірний логін або пароль", string.Empty, string.Empty);
+            }
+
+            
+            string jwtToken = "dummy_jwt_token_here";
+
+            
+            return (true, jwtToken, user.Gmail, user.Username);
+        }
+
 
 
 

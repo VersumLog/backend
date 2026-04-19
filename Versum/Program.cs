@@ -25,6 +25,8 @@ builder.Services.AddCors(options => {
 });
 
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IGmailService, GmailService>();
+
 var app = builder.Build();
 
 
