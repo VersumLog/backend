@@ -57,7 +57,7 @@ namespace Versum.Services
 
                 PasswordHash = passwordHash,
 
-                Gmail = dto.Gmail,
+                 Email = dto.Email,
 
                 EmailConfirmationTokenHash = tokenHash,
                 EmailTokenExpiryDate = confLimit

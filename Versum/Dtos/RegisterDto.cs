@@ -21,15 +21,10 @@ namespace Versum.Dtos{
         public string Password { get; set; } = "";
        
 
-        [Required(ErrorMessage = "Введіть свій пароль ще раз")]
-        [Compare("Password", ErrorMessage = "Ваш пароль не збігається")]
-        public string ConfirmPassword { get; set; } = "";  // field for re-entry password
-
-
         [Required(ErrorMessage = "Введіть email")]
         [RegularExpression(@"^[^@\s]+@[^@\s]+\.[^@\s]+$",
             ErrorMessage = "Неправильний email")] // checks if gmail is in right form
         [MaxLength(50, ErrorMessage = "поле email неможе містити більше 50-ти символів")]
-        public string Gmail { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
     }
 }

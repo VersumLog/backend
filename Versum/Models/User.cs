@@ -11,7 +11,7 @@ namespace Versum
         [MaxLength(60)] public string PasswordHash { get; set; } = "";
 
 
-        [MaxLength(50)] public string Gmail { get; set; } = "";
+        [MaxLength(50)] public string Email { get; set; } = "";
 
 
         public bool IsEmailConfirmed { get; set; } = false; // Did user confirm email
