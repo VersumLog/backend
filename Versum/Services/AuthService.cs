@@ -104,16 +104,8 @@ namespace Versum.Services
                 await _db.SaveChangesAsync();
 
                 //Email message
-                string htmlMessage = $@"
-        <div style='font-family: Arial, sans-serif; border: 1px solid #ddd; padding: 20px;'>
-            <h2>Відновлення пароля</h2>
-            <p>Ваш код підтвердження:</p>
-            <h1 style='color: #007bff; letter-spacing: 5px;'>{ResetToken}</h1>
-            <p>Цей код дійсний протягом 1 години.</p>
-        </div>";
-
-
-                await _emailService.SendEmailAsync(user.Email, "Код відновлення пароля", htmlMessage);
+                await _emailService.SendResetCodeEmailAsync(user.Email, user.Username, ResetToken);
+                //await _emailService.SendEmailAsync(user.Email, "Код відновлення пароля", htmlMessage);
 
                 return (true, null);
             }
