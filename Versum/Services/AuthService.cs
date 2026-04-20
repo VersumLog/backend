@@ -5,20 +5,6 @@ using Versum.Dtos;
 
 namespace Versum.Services
 {
-    public interface IAuthService
-    {
-        Task<(bool Success, string? Error, string? Field)> RegisterAsync(RegisterDto dto);
-        // Method returns:
-        // bool Success = successful registration
-        // string? Error = text of error (or null if everuthing is ok)
-        // string? Field = what field has error (or null if everything is ok)
-
-        Task<(bool success, string tokenOrError, string userGmail, string username)> LoginAsync(LoginDto dto);
-
-        Task<(bool success, string? error)> ForgotPasswordAsync(ForgotPasswordDto dto);
-        Task<(bool success, string? error)> ResetPasswordAsync(ResetPasswordDto dto);
-    }
-
     public class AuthService : IAuthService {
 
         private readonly ApplicationDbContext _db;
@@ -135,6 +121,7 @@ namespace Versum.Services
                 return (false, "Помилка на сервері при обробці запиту");
             }
         }
+
         public async Task<(bool success, string? error)> ResetPasswordAsync(ResetPasswordDto dto)
         {
             var user = await _db.Users.FirstOrDefaultAsync(u => u.PasswordResetToken == dto.Token);
