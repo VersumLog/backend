@@ -22,11 +22,12 @@ namespace Versum.Services
     public class AuthService : IAuthService {
 
         private readonly ApplicationDbContext _db;
-        public AuthService(ApplicationDbContext db)
+        private readonly IEmailService _emailService;
+        public AuthService(ApplicationDbContext db, IEmailService emailService)
         
         {
             _db = db;
-          
+          _emailService = emailService;
         }
         public async Task<(bool Success, string? Error, string? Field)> RegisterAsync(RegisterDto dto)
         {
@@ -77,7 +78,7 @@ namespace Versum.Services
         {
            
             var user = await _db.Users.FirstOrDefaultAsync(u =>
-                u.Gmail == dto.UsernameOrGmail || u.Username == dto.UsernameOrGmail);
+                u.Email == dto.UsernameOrGmail || u.Username == dto.UsernameOrGmail);
 
             if (user == null)
             {
@@ -98,17 +99,17 @@ namespace Versum.Services
             string jwtToken = "dummy_jwt_token_here";
 
             
-            return (true, jwtToken, user.Gmail, user.Username);
+            return (true, jwtToken, user.Email, user.Username);
         }
 
         public async Task<(bool success, string? error)> ForgotPasswordAsync(ForgotPasswordDto dto)
         {
-            var user = await _db.Users.FirstOrDefaultAsync(u => u.Username == dto.Email);
+            var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == dto.Email);
             if (user == null)
             {
                 return (true, null); //Returning true even if email doesn't exit for account safety
             }
-            string ResetToken = Guid.NewGuid().ToString(); // Generating a new GUID token
+            string ResetToken = RandomNumberGenerator.GetInt32(100000, 1000000).ToString();
             user.PasswordResetToken = ResetToken;
             user.ResetTokenExpires = DateTime.UtcNow.AddHours(1); // Token is valid for one hour after creation
 
@@ -116,8 +117,16 @@ namespace Versum.Services
             {
                 await _db.SaveChangesAsync();
 
-                //Email interaction not implemented yet
-                //await _emailService.SendResetPasswordEmailAsync(user.Username, resetToken);
+                string htmlMessage = $@"
+        <div style='font-family: Arial, sans-serif; border: 1px solid #ddd; padding: 20px;'>
+            <h2>Відновлення пароля</h2>
+            <p>Ваш код підтвердження:</p>
+            <h1 style='color: #007bff; letter-spacing: 5px;'>{ResetToken}</h1>
+            <p>Цей код дійсний протягом 1 години.</p>
+        </div>";
+
+
+                await _emailService.SendEmailAsync(user.Username, "Код відновлення пароля", htmlMessage);
 
                 return (true, null);
             }

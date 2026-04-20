@@ -12,13 +12,12 @@ namespace Versum.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
+        private readonly IEmailService _emailService;
 
-        private readonly IGmailService _gmailService;
-
-        public AuthController(IAuthService authService, IGmailService gmailService)
+        public AuthController(IAuthService authService, IEmailService emailService)
         {
             _authService = authService;
-            _gmailService = gmailService;
+            _emailService = emailService;
         }
 
    
@@ -51,7 +50,7 @@ namespace Versum.Controllers
 
             try
             {
-                await _gmailService.SendLoginNotificationAsync(userGmail, username);// awaits email sending to avoid crashes
+                //await _gmailService.SendLoginNotificationAsync(userGmail, username);// awaits email sending to avoid crashes
             }
             catch (Exception ex)
             {
@@ -71,6 +70,7 @@ namespace Versum.Controllers
             {
                 return BadRequest(new { message = error });
             }
+
 
             return Ok(new { message = "Лист надіслано" });
 
