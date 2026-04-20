@@ -113,7 +113,7 @@ namespace Versum.Services
         </div>";
 
 
-                await _emailService.SendEmailAsync(user.Username, "Код відновлення пароля", htmlMessage);
+                await _emailService.SendEmailAsync(user.Email, "Код відновлення пароля", htmlMessage);
 
                 return (true, null);
             }
