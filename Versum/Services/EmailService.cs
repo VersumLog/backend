@@ -37,7 +37,7 @@ public class EmailService : IEmailService
         emailMessage.To.Add(new MailboxAddress("", toEmail));
         emailMessage.Subject = subject;
 
-        // 2. Email body
+        // Email body
         emailMessage.Body = new TextPart(MimeKit.Text.TextFormat.Html)
         {
             Text = htmlMessage
