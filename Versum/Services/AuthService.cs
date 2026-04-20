@@ -5,25 +5,15 @@ using Versum.Dtos;
 
 namespace Versum.Services
 {
-    public interface IAuthService
-    {
-        Task<(bool Success, string? Error, string? Field)> RegisterAsync(RegisterDto dto);
-        // Method returns:
-        // bool Success = successful registration
-        // string? Error = text of error (or null if everuthing is ok)
-        // string? Field = what field has error (or null if everything is ok)
-
-        Task<(bool success, string tokenOrError, string userGmail, string username)> LoginAsync(LoginDto dto);
-    }
-
     public class AuthService : IAuthService {
 
         private readonly ApplicationDbContext _db;
-        public AuthService(ApplicationDbContext db)
+        private readonly IEmailService _emailService;
+        public AuthService(ApplicationDbContext db, IEmailService emailService)
         
         {
             _db = db;
-          
+          _emailService = emailService;
         }
         public async Task<(bool Success, string? Error, string? Field)> RegisterAsync(RegisterDto dto)
         {
@@ -74,7 +64,7 @@ namespace Versum.Services
         {
            
             var user = await _db.Users.FirstOrDefaultAsync(u =>
-                u.Gmail == dto.UsernameOrGmail || u.Username == dto.UsernameOrGmail);
+                u.Email == dto.UsernameOrGmail || u.Username == dto.UsernameOrGmail);
 
             if (user == null)
             {
@@ -95,10 +85,73 @@ namespace Versum.Services
             string jwtToken = "dummy_jwt_token_here";
 
             
-            return (true, jwtToken, user.Gmail, user.Username);
+            return (true, jwtToken, user.Email, user.Username);
         }
 
+        public async Task<(bool success, string? error)> ForgotPasswordAsync(ForgotPasswordDto dto)
+        {
+            var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == dto.Email);
+            if (user == null)
+            {
+                return (true, null); //Returning true even if email doesn't exit for account safety
+            }
+            string ResetToken = RandomNumberGenerator.GetInt32(100000, 1000000).ToString();
+            user.PasswordResetToken = ResetToken;
+            user.ResetTokenExpires = DateTime.UtcNow.AddHours(1); // Token is valid for one hour after creation
 
+            try
+            {
+                await _db.SaveChangesAsync();
+
+                //Email message
+                string htmlMessage = $@"
+        <div style='font-family: Arial, sans-serif; border: 1px solid #ddd; padding: 20px;'>
+            <h2>Відновлення пароля</h2>
+            <p>Ваш код підтвердження:</p>
+            <h1 style='color: #007bff; letter-spacing: 5px;'>{ResetToken}</h1>
+            <p>Цей код дійсний протягом 1 години.</p>
+        </div>";
+
+
+                await _emailService.SendEmailAsync(user.Username, "Код відновлення пароля", htmlMessage);
+
+                return (true, null);
+            }
+            catch (Exception ex)
+            {
+                return (false, "Помилка на сервері при обробці запиту");
+            }
+        }
+
+        public async Task<(bool success, string? error)> ResetPasswordAsync(ResetPasswordDto dto)
+        {
+            var user = await _db.Users.FirstOrDefaultAsync(u => u.PasswordResetToken == dto.Token);
+            if (user == null)
+            {
+                return (false, "Недійсний токен.");
+            }
+            if (user.ResetTokenExpires < DateTime.UtcNow)
+            {
+                return (false, "Термін дії токена вичерпано. Запитуйте відновлення знову.");
+            }
+            try
+            {
+                user.PasswordResetToken = null;
+                user.ResetTokenExpires = null;
+                string passwordHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
+
+                await _db.SaveChangesAsync();
+                return (true, null);
+            }
+            catch(DbUpdateException ex)
+            {
+                return (false, "Сталася помилка при зверненні до бази даних.");
+            }
+            catch(Exception ex)
+            {
+                return (false, "Сталася непередбачувана помилка на сервері.");
+            }
+        }
 
 
 
