@@ -16,34 +16,34 @@ public class EmailService : IEmailService
         var emailSettings = _config.GetSection("EmailSettings");
         var emailMessage = new MimeKit.MimeMessage();
 
-        // 1. Формуємо заголовок листа
+        // Email Message Creation
         emailMessage.From.Add(new MailboxAddress("Versum", emailSettings["SenderEmail"]));
         emailMessage.To.Add(new MailboxAddress("", toEmail));
         emailMessage.Subject = subject;
 
-        // 2. Додаємо вміст (HTML)
+        // 2. Email body
         emailMessage.Body = new TextPart(MimeKit.Text.TextFormat.Html)
         {
             Text = htmlMessage
         };
 
-        // 3. Відправка через Mailtrap
+        // Mailtrap
         using (var client = new SmtpClient())
         {
-            // Підключаємося до сервера Mailtrap
+            // Connecting to Mailtrap server
             await client.ConnectAsync(
                 emailSettings["SmtpServer"],
                 int.Parse(emailSettings["Port"]),
                 MailKit.Security.SecureSocketOptions.StartTls
             );
 
-            // Авторизуємося вашим Username та Password
+            // Client Auth
             await client.AuthenticateAsync(emailSettings["Username"], emailSettings["Password"]);
 
-            // Надсилаємо
+            // Sending an email
             await client.SendAsync(emailMessage);
 
-            // Розриваємо з'єднання
+            // disconnecting
             await client.DisconnectAsync(true);
         }
     }

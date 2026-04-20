@@ -103,6 +103,7 @@ namespace Versum.Services
             {
                 await _db.SaveChangesAsync();
 
+                //Email message
                 string htmlMessage = $@"
         <div style='font-family: Arial, sans-serif; border: 1px solid #ddd; padding: 20px;'>
             <h2>Відновлення пароля</h2>
