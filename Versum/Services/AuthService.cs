@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using MailKit.Security;
+using Microsoft.EntityFrameworkCore;
+using MimeKit;
 using System.Security.Cryptography;
 using System.Text;
 using Versum.Dtos;
@@ -27,16 +29,20 @@ namespace Versum.Services
             // Hashing password before saving by algorythm
             // BCrypt from NuGet packet BCrypt.Net-Next;
 
-            string token = Guid.NewGuid().ToString("N");
-            // Generates unique token for email confirmation
-            var confLimit = DateTime.UtcNow.AddHours(24); // email confirmation could be valid only during 24 h
 
-            string tokenHash;
+            string registerToken = Guid.NewGuid().ToString();
+
+            // Generates unique token for email confirmation
+            string RegisterTokenHash;
             using (var sha256 = SHA256.Create())
             {
-                var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(token));
-                tokenHash = Convert.ToBase64String(bytes);
+                var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(registerToken));
+                RegisterTokenHash = Convert.ToBase64String(bytes);
             }
+          
+            var confLimit = DateTime.UtcNow.AddHours(1); // email confirmation could be valid only during 24 h
+            
+         
 
             var user = new User
             {
@@ -46,19 +52,59 @@ namespace Versum.Services
 
                  Email = dto.Email,
 
-                EmailConfirmationTokenHash = tokenHash,
+                EmailConfirmationTokenHash = RegisterTokenHash,
                 EmailTokenExpiryDate = confLimit
 
             };
 
             _db.Users.Add(user);
-
             await _db.SaveChangesAsync();
-          
+
+
+            var confirmLink = $"https://localhost:7014/api/Auth/confirm-email?token={Uri.EscapeDataString(registerToken)}&email={dto.Email}";
+            var htmlMessage = $"""
+    <h2>Вітаємо вас у Versum!</h2>
+    <p>Натисніть кнопку нижче, щоб підтвердити вашу електронну пошту:</p>
+    <a href="{confirmLink}" 
+       style="background:#6c63ff;color:white;padding:12px 24px;border-radius:6px;text-decoration:none;">
+        Підтвердити email
+    </a>
+    <p>Посилання дійсне протягом години.</p>
+""";
+
+            await _emailService.SendEmailAsync(dto.Email, "Підтвердження реєстрації — Versum", htmlMessage);
+
 
             return (true, null, null);
           
 
+        }
+
+        public async Task<(bool success, string? error)> ConfirmEmailAsync(string token)
+        {
+            string incomingHash;
+            using (var sha256 = SHA256.Create())
+            {
+                var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(token));
+                incomingHash = Convert.ToBase64String(bytes);
+            }
+
+           
+            var user = await _db.Users.FirstOrDefaultAsync(u =>
+                u.EmailConfirmationTokenHash == incomingHash &&
+                u.EmailTokenExpiryDate > DateTime.UtcNow
+            );
+
+            if (user is null)
+                return (false, "Посилання недійсне або термін дії вичерпано");
+
+            user.IsEmailConfirmed = true;
+            user.EmailConfirmationTokenHash = null;
+            user.EmailTokenExpiryDate = null;
+
+            await _db.SaveChangesAsync();
+
+            return (true, null);
         }
         public async Task<(bool success, string tokenOrError, string userGmail, string username)> LoginAsync(LoginDto dto)
         {

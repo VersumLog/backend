@@ -21,6 +21,7 @@ namespace Versum.Controllers
         }
 
    
+
         [HttpPost("register")]
        
         public async Task<IActionResult> Register([FromBody] RegisterDto dto)// JSON converts to RegisterDtos object
@@ -33,9 +34,31 @@ namespace Versum.Controllers
             if (!success)
                 return Conflict(new { field, message = error }); //checks if data for transfer does not cause conflicts(error 409)
 
-            return Ok(new { message = "Реєстрація успішна" });
+            return Ok(new { message = "Реєстрація успішна! Перевірте пошту для підтвердження." });
            
         }
+
+
+
+        [HttpGet("confirm-email")]
+        public async Task<IActionResult> ConfirmEmail([FromQuery] string token)
+        {
+            if (string.IsNullOrWhiteSpace(token))
+                return BadRequest("Токен відсутній");
+
+            var (success, error) = await _authService.ConfirmEmailAsync(token);
+
+            if (!success)
+                // redirect on page with error
+                return BadRequest(new { message = error });
+            /* return Redirect($"https://localhost:7014.com/email-confirmed?success=false&error={Uri.EscapeDataString(error!)}"); */
+
+            // successfull: redirect on main page
+            return Ok(new { message = "Email успішно підтверджено!" });
+            /* return Redirect("https://localhost:7014.com/email-confirmed?success=true");*/
+        }
+
+
 
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDto dto)// JSON converts to LoginDto object
