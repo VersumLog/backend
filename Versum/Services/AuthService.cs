@@ -105,7 +105,6 @@ namespace Versum.Services
 
                 //Email message
                 await _emailService.SendResetCodeEmailAsync(user.Email, user.Username, ResetToken);
-                //await _emailService.SendEmailAsync(user.Email, "Код відновлення пароля", htmlMessage);
 
                 return (true, null);
             }
