@@ -62,17 +62,14 @@ namespace Versum.Services
 
 
             var confirmLink = $"https://localhost:7014/api/Auth/confirm-email?token={Uri.EscapeDataString(registerToken)}&email={dto.Email}";
-            var htmlMessage = $"""
-    <h2>Вітаємо вас у Versum!</h2>
-    <p>Натисніть кнопку нижче, щоб підтвердити вашу електронну пошту:</p>
-    <a href="{confirmLink}" 
-       style="background:#6c63ff;color:white;padding:12px 24px;border-radius:6px;text-decoration:none;">
-        Підтвердити email
-    </a>
-    <p>Посилання дійсне протягом години.</p>
-""";
+            var filePath = Path.Combine(AppContext.BaseDirectory, "Templates", "ConfRegistrationTemplate.html");
 
-            await _emailService.SendEmailAsync(dto.Email, "Підтвердження реєстрації — Versum", htmlMessage);
+
+            string htmlBody = await File.ReadAllTextAsync(filePath);
+            htmlBody = htmlBody.Replace("{Username}", dto.Username)
+                               .Replace("{confirmLink}", confirmLink);
+
+            await _emailService.SendEmailAsync(dto.Email, "Підтвердження реєстрації — Versum", htmlBody);
 
 
             return (true, null, null);
