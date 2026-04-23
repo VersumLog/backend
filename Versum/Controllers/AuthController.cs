@@ -77,7 +77,7 @@ namespace Versum.Controllers
         }
 
         [HttpPost("reset-password")]
-        public async Task<IActionResult> ResetReset([FromBody] ResetPasswordDto dto)
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);// checks validation attributes from LoginDto -> Smth wrong -> returns error 400
@@ -87,6 +87,21 @@ namespace Versum.Controllers
                 return BadRequest(new { message = error });
             }
             return Ok(new { message = "Пароль успішно змінено" });
+        }
+
+        [HttpPost("reset-password-token-check")]
+        public async Task<IActionResult> ResetPasswordToken([FromBody] ResetPasswordTokenDto dto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);// checks validation attributes from LoginDto -> Smth wrong -> returns error 400
+            
+            var (success, error) = await _authService.ResetPasswordTokenAsync(dto);
+
+            if (!success)
+            {
+                return BadRequest(new { message = error });
+            }
+            return Ok(new { message = "Токен Підтверджено" });
         }
 
         // Allow to see added users in the table(only for dev to try it out): shall be deleted or changed.

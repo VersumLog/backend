@@ -116,7 +116,10 @@ namespace Versum.Services
 
         public async Task<(bool success, string? error)> ResetPasswordAsync(ResetPasswordDto dto)
         {
-            var user = await _db.Users.FirstOrDefaultAsync(u => u.PasswordResetToken == dto.Token);
+            var user = await _db.Users.FirstOrDefaultAsync(
+                u => u.Email == dto.Email
+                && u.PasswordResetToken == dto.Token
+                );
             if (user == null)
             {
                 return (false, "Недійсний токен.");
@@ -130,6 +133,7 @@ namespace Versum.Services
                 user.PasswordResetToken = null;
                 user.ResetTokenExpires = null;
                 string passwordHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
+                user.PasswordHash = passwordHash;
 
                 await _db.SaveChangesAsync();
                 return (true, null);
@@ -144,7 +148,23 @@ namespace Versum.Services
             }
         }
 
+        public async Task<(bool success, string? error)> ResetPasswordTokenAsync(ResetPasswordTokenDto dto)
+        {
+            var user = await _db.Users.FirstOrDefaultAsync(
+                u => u.Email == dto.Email
+                && u.PasswordResetToken == dto.Token
+                );
+            if (user == null)
+            {
+                return (false, "Недійсний токен.");
+            }
+            if (user.ResetTokenExpires < DateTime.UtcNow)
+            {
+                return (false, "Термін дії токена вичерпано. Запитуйте відновлення знову.");
+            }
+                return (true, null);
 
+        }
 
     }
 }
