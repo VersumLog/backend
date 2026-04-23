@@ -20,10 +20,13 @@ namespace Versum.Services
         public async Task<(bool Success, string? Error, string? Field)> RegisterAsync(RegisterDto dto)
         {
             bool usernameExists = await _db.Users.AnyAsync(u => u.Username == dto.Username);
+            bool emailExists = await _db.Users.AnyAsync(e => e.Email == dto.Email);
 
             if (usernameExists)
                 return (false, "Цей нікнейм вже існує", "username");
-        
+            if (emailExists)
+                return (false, "Цей імейл вже існує", "email");
+
 
             string passwordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
             // Hashing password before saving by algorythm
