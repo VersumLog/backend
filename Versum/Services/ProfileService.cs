@@ -23,23 +23,39 @@ namespace Versum.Services
             {
                 return (false,"Чому нас вважають за одну людину?");
             }
-            if (user.Profile == null)
+            bool usernameExists = await _db.Users.AnyAsync(u => u.Username == dto.Username);
+            if (usernameExists)
+                return (false, "Цей нікнейм вже існує");
+
+            try
             {
-                user.Profile = new UserProfile();
+                if (user.Profile == null)
+                {
+                    user.Profile = new UserProfile();
+                }
+                if (user.Username != dto.Username)
+                {
+                    user.Username = dto.Username;
+                }
+                if (user.Profile.Name != dto.Name)
+                {
+                    user.Profile.Name = dto.Name;
+                }
+                if (user.Profile.Bio != dto.Bio)
+                {
+                    user.Profile.Bio = dto.Bio;
+                }
+                await _db.SaveChangesAsync();
+                return (true, null);
             }
-            if (user.Username != dto.Username)
+            catch (DbUpdateException ex)
             {
-                user.Username = dto.Username;
+                return (false, "Сталася помилка при зверненні до бази даних.");
             }
-            if (user.Profile.Name != dto.Name)
+            catch (Exception ex)
             {
-                user.Profile.Name = dto.Name;
+                return (false, "Сталася непередбачувана помилка на сервері.");
             }
-            if (user.Profile.Bio != dto.Bio)
-            {
-                user.Profile.Bio = dto.Bio;
-            }
-            return (true, null);
         }
     }
 }
