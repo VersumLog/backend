@@ -1,6 +1,7 @@
 ﻿using MailKit.Security;
 using Microsoft.EntityFrameworkCore;
 using MimeKit;
+using System.Buffers.Text;
 using System.Security.Cryptography;
 using System.Text;
 using Versum.Dtos;
@@ -11,11 +12,12 @@ namespace Versum.Services
 
         private readonly ApplicationDbContext _db;
         private readonly IEmailService _emailService;
-        public AuthService(ApplicationDbContext db, IEmailService emailService)
-        
+        private readonly IConfiguration _configuration;
+        public AuthService(ApplicationDbContext db,IEmailService emailService,IConfiguration configuration)
         {
             _db = db;
-          _emailService = emailService;
+            _emailService = emailService;
+            _configuration = configuration;
         }
         public async Task<(bool Success, string? Error, string? Field)> RegisterAsync(RegisterDto dto)
         {
@@ -64,7 +66,7 @@ namespace Versum.Services
             await _db.SaveChangesAsync();
 
 
-            var confirmLink = $"https://localhost:7014/api/Auth/confirm-email?token={Uri.EscapeDataString(registerToken)}&email={dto.Email}";
+            var confirmLink = $"{_configuration["AppSettings:BaseUrl"]}/api/Auth/confirm-email?token={Uri.EscapeDataString(registerToken)}&email={dto.Email}";
             var filePath = Path.Combine(AppContext.BaseDirectory, "Templates", "ConfRegistrationTemplate.html");
 
 
