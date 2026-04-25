@@ -16,11 +16,16 @@ namespace Versum.Services
         }
         public async Task<(bool success, string? error)> UpdateProfileAsync(int UserId, UserProfileDto dto)
         {
-            var user = await _db.Users.FirstOrDefaultAsync(
-                u => u.Id == UserId);
+            var user = await _db.Users
+            .Include(u => u.Profile)
+            .FirstOrDefaultAsync(u => u.Id == UserId);
             if (user == null)
             {
                 return (false,"Чому нас вважають за одну людину?");
+            }
+            if (user.Profile == null)
+            {
+                user.Profile = new UserProfile();
             }
             if (user.Username != dto.Username)
             {
@@ -30,7 +35,7 @@ namespace Versum.Services
             {
                 user.Profile.Name = dto.Name;
             }
-            if (user.Profile.Bio !=  dto.Bio)
+            if (user.Profile.Bio != dto.Bio)
             {
                 user.Profile.Bio = dto.Bio;
             }
