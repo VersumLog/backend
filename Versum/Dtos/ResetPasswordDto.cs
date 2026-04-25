@@ -15,6 +15,10 @@ namespace Versum.Dtos
             ErrorMessage = "Пароль не може містити пробіли")]
         public string NewPassword { get; set; } = string.Empty;
 
+        [Required(ErrorMessage = "Введіть email")]
+        [RegularExpression(@"^[^@\s]+@[^@\s]+\.[^@\s]+$",
+            ErrorMessage = "Неправильний email")] // checks if gmail is in right form
+        [MaxLength(50, ErrorMessage = "поле email неможе містити більше 50-ти символів")]
         public string Email { get; set; } = string.Empty;
     }
 }

@@ -90,12 +90,12 @@ namespace Versum.Controllers
         }
 
         [HttpPost("reset-password-token-check")]
-        public async Task<IActionResult> ResetPasswordToken([FromBody] ResetPasswordTokenDto dto)
+        public async Task<IActionResult> ResetPasswordTokenCheck([FromBody] ResetPasswordTokenDto dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);// checks validation attributes from LoginDto -> Smth wrong -> returns error 400
             
-            var (success, error) = await _authService.ResetPasswordTokenAsync(dto);
+            var (success, error) = await _authService.ResetPasswordTokenCheckAsync(dto);
 
             if (!success)
             {

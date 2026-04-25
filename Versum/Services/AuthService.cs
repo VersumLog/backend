@@ -148,7 +148,7 @@ namespace Versum.Services
             }
         }
 
-        public async Task<(bool success, string? error)> ResetPasswordTokenAsync(ResetPasswordTokenDto dto)
+        public async Task<(bool success, string? error)> ResetPasswordTokenCheckAsync(ResetPasswordTokenDto dto)
         {
             var user = await _db.Users.FirstOrDefaultAsync(
                 u => u.Email == dto.Email

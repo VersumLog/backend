@@ -12,5 +12,5 @@ public interface IAuthService
 
     Task<(bool success, string? error)> ForgotPasswordAsync(ForgotPasswordDto dto);
     Task<(bool success, string? error)> ResetPasswordAsync(ResetPasswordDto dto);
-    Task<(bool success, string? error)> ResetPasswordTokenAsync(ResetPasswordTokenDto dto);
+    Task<(bool success, string? error)> ResetPasswordTokenCheckAsync(ResetPasswordTokenDto dto);
 }
