@@ -43,7 +43,7 @@ namespace Versum.Services
                 RegisterTokenHash = Convert.ToBase64String(bytes);
             }
           
-            var confLimit = DateTime.UtcNow.AddHours(1); // email confirmation could be valid only during 24 h
+            var confLimit = DateTime.UtcNow.AddHours(24); // email confirmation could be valid only during 24 h
             
          
 
