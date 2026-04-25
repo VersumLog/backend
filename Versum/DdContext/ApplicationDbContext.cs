@@ -11,16 +11,23 @@ namespace Versum
 
         public DbSet<Post> Posts { get; set; }
         public DbSet<User> Users { get; set; }
+        public DbSet<UserProfile> Profiles { get; set; } 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
   
         {
             modelBuilder.Entity<User>().HasIndex(u => u.Username).IsUnique();
             modelBuilder.Entity<User>().HasIndex(u => u.Email).IsUnique();
+
             modelBuilder.Entity<User>()
             .HasIndex(u => new { u.Email, u.PasswordResetToken });
             modelBuilder.Entity<User>().HasIndex(u => u.EmailConfirmationTokenHash).IsUnique();
 
+            modelBuilder.Entity<User>()
+            .HasOne(u => u.Profile)
+            .WithOne(p => p.User)
+            .HasForeignKey<UserProfile>(p => p.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

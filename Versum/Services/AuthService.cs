@@ -1,7 +1,10 @@
-﻿using MailKit.Security;
+//using MailKit.Security;
 using Microsoft.EntityFrameworkCore;
-using MimeKit;
-using System.Buffers.Text;
+//using MimeKit;
+//using System.Buffers.Text;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using Versum.Dtos;
@@ -129,13 +132,35 @@ namespace Versum.Services
                 return (false, "Невірний логін або пароль", string.Empty, string.Empty);
             }
 
-            
-            string jwtToken = "dummy_jwt_token_here";
 
-            
+            string jwtToken = GenerateJwtToken(user);
+
+
             return (true, jwtToken, user.Email, user.Username);
         }
 
+        public string GenerateJwtToken(User user)
+        {
+            var claims = new[]
+            {
+        new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()), // Наш currentUserId
+        new Claim(ClaimTypes.Name, user.Username),
+        new Claim(ClaimTypes.Email, user.Email)
+    };
+
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            var token = new JwtSecurityToken(
+                issuer: _configuration["Jwt:Issuer"],
+                audience: _configuration["Jwt:Audience"],
+                claims: claims,
+                expires: DateTime.UtcNow.AddMinutes(double.Parse(_configuration["Jwt:ExpireMinutes"])),
+                signingCredentials: creds
+            );
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
+        }
         public async Task<(bool success, string? error)> ForgotPasswordAsync(ForgotPasswordDto dto)
         {
             var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == dto.Email);
