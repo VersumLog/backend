@@ -1,4 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using MailKit.Security;
+using Microsoft.EntityFrameworkCore;
+using MimeKit;
+using System.Buffers.Text;
 using System.Security.Cryptography;
 using System.Text;
 using Versum.Dtos;
@@ -9,34 +12,42 @@ namespace Versum.Services
 
         private readonly ApplicationDbContext _db;
         private readonly IEmailService _emailService;
-        public AuthService(ApplicationDbContext db, IEmailService emailService)
-        
+        private readonly IConfiguration _configuration;
+        public AuthService(ApplicationDbContext db,IEmailService emailService,IConfiguration configuration)
         {
             _db = db;
-          _emailService = emailService;
+            _emailService = emailService;
+            _configuration = configuration;
         }
         public async Task<(bool Success, string? Error, string? Field)> RegisterAsync(RegisterDto dto)
         {
             bool usernameExists = await _db.Users.AnyAsync(u => u.Username == dto.Username);
+            bool emailExists = await _db.Users.AnyAsync(e => e.Email == dto.Email);
 
             if (usernameExists)
                 return (false, "Цей нікнейм вже існує", "username");
-        
+            if (emailExists)
+                return (false, "Цей імейл вже існує", "email");
+
 
             string passwordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
             // Hashing password before saving by algorythm
             // BCrypt from NuGet packet BCrypt.Net-Next;
 
-            string token = Guid.NewGuid().ToString("N");
-            // Generates unique token for email confirmation
-            var confLimit = DateTime.UtcNow.AddHours(24); // email confirmation could be valid only during 24 h
 
-            string tokenHash;
+            string registerToken = Guid.NewGuid().ToString();
+
+            // Generates unique token for email confirmation
+            string RegisterTokenHash;
             using (var sha256 = SHA256.Create())
             {
-                var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(token));
-                tokenHash = Convert.ToBase64String(bytes);
+                var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(registerToken));
+                RegisterTokenHash = Convert.ToBase64String(bytes);
             }
+          
+            var confLimit = DateTime.UtcNow.AddHours(24); // email confirmation could be valid only during 24 h
+            
+         
 
             var user = new User
             {
@@ -46,19 +57,56 @@ namespace Versum.Services
 
                  Email = dto.Email,
 
-                EmailConfirmationTokenHash = tokenHash,
+                EmailConfirmationTokenHash = RegisterTokenHash,
                 EmailTokenExpiryDate = confLimit
 
             };
 
             _db.Users.Add(user);
-
             await _db.SaveChangesAsync();
-          
+
+
+            var confirmLink = $"{_configuration["AppSettings:BaseUrl"]}/api/Auth/confirm-email?token={Uri.EscapeDataString(registerToken)}&email={dto.Email}";
+            var filePath = Path.Combine(AppContext.BaseDirectory, "Templates", "ConfRegistrationTemplate.html");
+
+
+            string htmlBody = await File.ReadAllTextAsync(filePath);
+            htmlBody = htmlBody.Replace("{Username}", dto.Username)
+                               .Replace("{confirmLink}", confirmLink);
+
+            await _emailService.SendEmailAsync(dto.Email, "Підтвердження реєстрації — Versum", htmlBody);
+
 
             return (true, null, null);
           
 
+        }
+
+        public async Task<(bool success, string? error)> ConfirmEmailAsync(string token)
+        {
+            string incomingHash;
+            using (var sha256 = SHA256.Create())
+            {
+                var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(token));
+                incomingHash = Convert.ToBase64String(bytes);
+            }
+
+           
+            var user = await _db.Users.FirstOrDefaultAsync(u =>
+                u.EmailConfirmationTokenHash == incomingHash &&
+                u.EmailTokenExpiryDate > DateTime.UtcNow
+            );
+
+            if (user is null)
+                return (false, "Посилання недійсне або термін дії вичерпано");
+
+            user.IsEmailConfirmed = true;
+            user.EmailConfirmationTokenHash = null;
+            user.EmailTokenExpiryDate = null;
+
+            await _db.SaveChangesAsync();
+
+            return (true, null);
         }
         public async Task<(bool success, string tokenOrError, string userGmail, string username)> LoginAsync(LoginDto dto)
         {

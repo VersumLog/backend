@@ -19,6 +19,7 @@ namespace Versum
             modelBuilder.Entity<User>().HasIndex(u => u.Email).IsUnique();
             modelBuilder.Entity<User>()
             .HasIndex(u => new { u.Email, u.PasswordResetToken });
+            modelBuilder.Entity<User>().HasIndex(u => u.EmailConfirmationTokenHash).IsUnique();
 
         }
     }
