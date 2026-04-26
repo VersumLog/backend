@@ -7,7 +7,7 @@ namespace Versum
 
         [MaxLength(30)] public string? Name { get; set; }
 
-        [MaxLength(200)] public string? Bio {  get; set; }
+        [MaxLength(200)] public string? Bio { get; set; }
 
 
 

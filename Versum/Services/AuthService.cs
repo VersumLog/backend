@@ -1,7 +1,4 @@
-//using MailKit.Security;
 using Microsoft.EntityFrameworkCore;
-//using MimeKit;
-//using System.Buffers.Text;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -143,7 +140,7 @@ namespace Versum.Services
         {
             var claims = new[]
             {
-        new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()), // Наш currentUserId
+        new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()), // currentUserId
         new Claim(ClaimTypes.Name, user.Username),
         new Claim(ClaimTypes.Email, user.Email)
     };
