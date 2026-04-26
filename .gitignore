@@ -422,3 +422,12 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+
+# Postman
+*.postman_environment.json
+*.postman_globals.json
+
+# Postman local settings and metadata
+.postman/
+postman/
+*.yaml

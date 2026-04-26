@@ -47,20 +47,26 @@ public class EmailService : IEmailService
         using (var client = new SmtpClient())
         {
             // Connecting to Mailtrap server
-            await client.ConnectAsync(
-                emailSettings["SmtpServer"],
-                int.Parse(emailSettings["Port"]),
-                MailKit.Security.SecureSocketOptions.StartTls
-            );
+            try { 
+                await client.ConnectAsync(
+                    emailSettings["SmtpServer"],
+                    int.Parse(emailSettings["Port"]),
+                    MailKit.Security.SecureSocketOptions.StartTls
+                );
 
             // Client Auth
-            await client.AuthenticateAsync(emailSettings["Username"], emailSettings["Password"]);
+                await client.AuthenticateAsync(emailSettings["Username"], emailSettings["Password"]);
 
             // Sending an email
-            await client.SendAsync(emailMessage);
-
-            // disconnecting
-            await client.DisconnectAsync(true);
+                await client.SendAsync(emailMessage);
+            } catch (Exception ex)
+            {
+                Console.WriteLine($"Mail Error: {ex.Message}");
+            } finally
+            {
+                // disconnecting
+                await client.DisconnectAsync(true);
+            }
         }
     }
 }
