@@ -57,5 +57,19 @@ namespace Versum.Services
                 return (false, "Сталася непередбачувана помилка на сервері.");
             }
         }
+
+        public async Task<UserProfileResponseDto?> GetProfileByUsernameAsync(string username)
+        {
+            return await _db.Users
+                .Where(u => u.Username == username)
+                .Select(u => new UserProfileResponseDto
+                {
+                    Username = u.Username,
+                    Name = u.Profile.Name ?? "none",
+                    Bio = u.Profile.Bio ?? "none",
+                    CreatedAt = u.CreatedAt
+                })
+                .FirstOrDefaultAsync();
+        }
     }
 }
