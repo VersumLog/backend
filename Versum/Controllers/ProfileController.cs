@@ -40,7 +40,7 @@ namespace Versum.Controllers
             return Ok(new { message = "Профіль успішно оновлено" });
         }
 
-        [HttpGet("profile/{username}")]
+        [HttpGet("{username}")]
         public async Task<IActionResult> GetProfile(string username)
         {
             var profile = await _profileService.GetProfileByUsernameAsync(username.ToLower());
