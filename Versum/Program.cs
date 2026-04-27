@@ -51,6 +51,8 @@ builder.Services.AddScoped<IProfileService, ProfileService>();
 
 var app = builder.Build();
 
+app.UseCors("NuxtPolicy");
+
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -62,8 +64,6 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
-app.UseCors("NuxtPolicy");
 
 app.MapHub<NotificationHub>("/notificationHub");
 

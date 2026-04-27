@@ -23,8 +23,9 @@ namespace Versum.Services
             {
                 return (false,"Чому нас вважають за одну людину?");
             }
+
             bool usernameExists = await _db.Users.AnyAsync(u => u.Username == dto.Username);
-            if (usernameExists)
+            if (usernameExists && user.Username != dto.Username)
                 return (false, "Цей нікнейм вже існує");
 
             try
