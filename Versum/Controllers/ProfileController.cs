@@ -40,5 +40,17 @@ namespace Versum.Controllers
             return Ok(new { message = "Профіль успішно оновлено" });
         }
 
+        [HttpGet("profile/{username}")]
+        public async Task<IActionResult> GetProfile(string username)
+        {
+            var profile = await _profileService.GetProfileByUsernameAsync(username.ToLower());
+
+            if (profile == null)
+            {
+                return NotFound(new { message = "Користувача не знайдено" });
+            }
+
+            return Ok(profile);
+        }
     }
 }
