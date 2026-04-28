@@ -44,10 +44,10 @@ namespace Versum.Controllers
         public async Task<IActionResult> GetProfile(string username)
         {
             var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
-            int? sendlerUserId = null;
-            if (userIdClaim != null) sendlerUserId = int.Parse(userIdClaim.Value);
+            int? senderUserId = null;
+            if (userIdClaim != null) senderUserId = int.Parse(userIdClaim.Value);
 
-            var profile = await _profileService.GetProfileByUsernameAsync(username.ToLower(), sendlerUserId);
+            var profile = await _profileService.GetProfileByUsernameAsync(username.ToLower(), senderUserId);
 
             if (profile == null)
             {
