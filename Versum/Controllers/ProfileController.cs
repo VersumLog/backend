@@ -43,7 +43,11 @@ namespace Versum.Controllers
         [HttpGet("{username}")]
         public async Task<IActionResult> GetProfile(string username)
         {
-            var profile = await _profileService.GetProfileByUsernameAsync(username.ToLower());
+            var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+            int? senderUserId = null;
+            if (userIdClaim != null) senderUserId = int.Parse(userIdClaim.Value);
+
+            var profile = await _profileService.GetProfileByUsernameAsync(username.ToLower(), senderUserId);
 
             if (profile == null)
             {

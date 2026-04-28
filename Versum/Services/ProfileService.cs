@@ -59,7 +59,7 @@ namespace Versum.Services
             }
         }
 
-        public async Task<UserProfileResponseDto?> GetProfileByUsernameAsync(string username)
+        public async Task<UserProfileResponseDto?> GetProfileByUsernameAsync(string username, int? claimedUserID)
         {
             return await _db.Users
                 .Where(u => u.Username == username)
@@ -68,7 +68,8 @@ namespace Versum.Services
                     Username = u.Username,
                     Name = u.Profile.Name ?? "none",
                     Bio = u.Profile.Bio ?? "none",
-                    CreatedAt = u.CreatedAt
+                    CreatedAt = u.CreatedAt,
+                    IsOwner = u.Id == claimedUserID
                 })
                 .FirstOrDefaultAsync();
         }
