@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Versum.Models;
 
 namespace Versum
 {
@@ -11,7 +12,11 @@ namespace Versum
 
         public DbSet<Post> Posts { get; set; }
         public DbSet<User> Users { get; set; }
+
         public DbSet<UserProfile> Profiles { get; set; } 
+
+        public DbSet<Author> Authors { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
   
