@@ -7,7 +7,7 @@ namespace Versum.Dtos
 
 
 
-        [Required(ErrorMessage = "Будь ласка, заповніть біографію")]
+        [Required(ErrorMessage = "Будь ласка, заповніть біографію автора")]
 
         [MinLength(10, ErrorMessage = "Мінімум 10 символів")]
         [MaxLength(500, ErrorMessage = "Максимум 500 символів")]
