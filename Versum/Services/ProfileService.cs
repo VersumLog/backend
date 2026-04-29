@@ -89,9 +89,6 @@ namespace Versum.Services
             if (!passwordValid)
                 return (false, "Неправильний пароль, введіть ще раз або вийдіть.");
 
-           
-            if (deleteDto.ConfirmWord.Trim().ToLower() != "видалити")
-                return (false, "Слово підтвердження введено невірно. Введіть «видалити».");
 
            
             user.Email = $"deleted_{Guid.NewGuid()}@anonymized.com";
@@ -113,6 +110,10 @@ namespace Versum.Services
             catch (DbUpdateException)
             {
                 return (false, "Сталася помилка при зверненні до бази даних.");
+            }
+            catch (Exception)
+            {
+                return (false, "Сталася непередбачувана помилка на сервері.");
             }
         }
     }
