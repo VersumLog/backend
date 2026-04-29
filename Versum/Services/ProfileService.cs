@@ -73,5 +73,47 @@ namespace Versum.Services
                 })
                 .FirstOrDefaultAsync();
         }
+
+
+        public async Task<(bool success, string? error)> DeleteAndAnonymizeAccount(int userId, DeleteAccountDto deleteDto)
+        {
+            var user = await _db.Users
+                .Include(u => u.Profile)
+                .FirstOrDefaultAsync(u => u.Id == userId);
+
+            if (user == null)
+                return (false, "Користувача не знайдено.");
+
+            
+            bool passwordValid = BCrypt.Net.BCrypt.Verify(deleteDto.Password, user.PasswordHash);
+            if (!passwordValid)
+                return (false, "Неправильний пароль, введіть ще раз або вийдіть.");
+
+           
+            if (deleteDto.ConfirmWord.Trim().ToLower() != "видалити")
+                return (false, "Слово підтвердження введено невірно. Введіть «видалити».");
+
+           
+            user.Email = $"deleted_{Guid.NewGuid()}@anonymized.com";
+            user.Username = $"anon_{Guid.NewGuid():N}"; 
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(Guid.NewGuid().ToString()); 
+            user.IsDeleted = true;
+
+            if (user.Profile != null)
+            {
+                user.Profile.Name = "Анонімний автор";
+                user.Profile.Bio = "Акаунт видалено";
+            }
+
+            try
+            {
+                await _db.SaveChangesAsync();
+                return (true, null);
+            }
+            catch (DbUpdateException)
+            {
+                return (false, "Сталася помилка при зверненні до бази даних.");
+            }
+        }
     }
 }

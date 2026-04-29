@@ -56,5 +56,25 @@ namespace Versum.Controllers
 
             return Ok(profile);
         }
+
+        [Authorize]
+        [HttpPost("delete-account")]
+        public async Task<IActionResult> DeleteAccount([FromBody] DeleteAccountDto dto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+            if (userIdClaim == null) return Unauthorized();
+
+            int currentUserId = int.Parse(userIdClaim.Value);
+
+            var (success, error) = await _profileService.DeleteAndAnonymizeAccount(currentUserId, dto);
+            if (!success)
+                return BadRequest(new { message = error });
+
+            return Ok(new { message = "Акаунт успішно видалено та анонімізовано" });
+        }
+
     }
 }
