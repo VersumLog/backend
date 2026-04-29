@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Versum;
@@ -11,9 +12,11 @@ using Versum;
 namespace Versum.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260426144005_AuthorsTable")]
+    partial class AuthorsTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -25,12 +28,21 @@ namespace Versum.Migrations
             modelBuilder.Entity("Versum.Models.IsAuthor", b =>
                 {
                     b.Property<int>("AuthorId")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("AuthorId"));
 
                     b.Property<string>("AuthorBio")
                         .HasColumnType("text");
 
+                    b.Property<int>("Id")
+                        .HasColumnType("integer");
+
                     b.HasKey("AuthorId");
+
+                    b.HasIndex("Id")
+                        .IsUnique();
 
                     b.ToTable("Authors");
                 });
@@ -85,9 +97,6 @@ namespace Versum.Migrations
                     b.Property<DateTime?>("EmailTokenExpiryDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
-
                     b.Property<bool>("IsEmailConfirmed")
                         .HasColumnType("boolean");
 
@@ -123,62 +132,22 @@ namespace Versum.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("Versum.UserProfile", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Bio")
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<string>("Name")
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId")
-                        .IsUnique();
-
-                    b.ToTable("Profiles");
-                });
-
-            modelBuilder.Entity("Versum.UserProfile", b =>
+            modelBuilder.Entity("Versum.Models.IsAuthor", b =>
                 {
                     b.HasOne("Versum.User", "User")
-                        .WithOne("Profile")
-                        .HasForeignKey("Versum.UserProfile", "UserId");
+                        .WithOne("AuthorProfile")
+                        .HasForeignKey("Versum.Models.IsAuthor", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
-                    modelBuilder.Entity("Versum.Models.IsAuthor", b =>
-                        {
-                            b.HasOne("Versum.User", "User")
-                                .WithOne("AuthorProfile")
-                                .HasForeignKey("Versum.Models.IsAuthor", "AuthorId")
-
-                                .OnDelete(DeleteBehavior.Cascade)
-                                .IsRequired();
-
-                            b.Navigation("User");
-                        });
-
-                    modelBuilder.Entity("Versum.User", b =>
-                        {
-
-                            b.Navigation("Profile")
-                                .IsRequired();
-
-                            b.Navigation("AuthorProfile");
-
-                        });
-#pragma warning restore 612, 618
+                    b.Navigation("User");
                 });
+
+            modelBuilder.Entity("Versum.User", b =>
+                {
+                    b.Navigation("AuthorProfile");
+                });
+#pragma warning restore 612, 618
         }
-    }; 
+    }
 }

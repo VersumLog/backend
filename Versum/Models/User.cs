@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using Versum.Models;
 namespace Versum
 {
     public class User
@@ -21,8 +22,12 @@ namespace Versum
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow; // Date and Time when user signed up
         public string? PasswordResetToken { get; set; }
         public DateTime? ResetTokenExpires { get; set; }
+
         public UserProfile Profile { get; set; }
         public bool IsDeleted { get; set; }
+
+        public virtual Author? AuthorProfile { get; set; }
+
 
     }
 }
