@@ -5,8 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using Versum.Models;
 using Versum.Services;
-using static Versum.Services.BCAuthorService;
-using static Versum.Services.BCAuthorService.AuthorService;
+
 
 namespace Versum.Controllers
 {
@@ -16,9 +15,9 @@ namespace Versum.Controllers
     [Route("api/[controller]")]
     public class BecomeAuthorController : ControllerBase
     {
-        private readonly IAuthorService _authorService;
+        private readonly IBCAuthorService _authorService;
 
-        public BecomeAuthorController(IAuthorService authorService)
+        public BecomeAuthorController(IBCAuthorService authorService)
         {
             _authorService = authorService;
         }

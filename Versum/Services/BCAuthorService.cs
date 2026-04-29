@@ -4,21 +4,13 @@ using Versum.Models;
 
 namespace Versum.Services
 {
-    public class BCAuthorService
-
-    {
-
-        public interface IAuthorService
-        {
-            Task<(bool Success, string? Error)> BecomeAuthorAsync(int userId, BecomeAuthorDto dto);
-            Task<(bool Success, string? Bio, string? Error)> GetAuthorBioAsync(int userId);
-            Task<(bool Success, string? Error)> UpdateAuthorBioAsync(int userId, BecomeAuthorDto dto);
-        }
-        public class AuthorService : IAuthorService
+  
+       
+        public class BCAuthorService : IBCAuthorService
         {
             private readonly ApplicationDbContext _db;
 
-            public AuthorService(ApplicationDbContext db)
+            public BCAuthorService(ApplicationDbContext db)
             {
                 _db = db;
             }
@@ -95,4 +87,3 @@ namespace Versum.Services
 
         }
     }
-}
