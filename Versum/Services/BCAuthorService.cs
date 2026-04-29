@@ -7,7 +7,7 @@ namespace Versum.Services
     public class BCAuthorService
 
     {
-        
+
         public interface IAuthorService
         {
             Task<(bool Success, string? Error)> BecomeAuthorAsync(int userId, BecomeAuthorDto dto);
@@ -26,33 +26,52 @@ namespace Versum.Services
 
             public async Task<(bool Success, string? Error)> BecomeAuthorAsync(int userId, BecomeAuthorDto dto)
             {
-                var user = await _db.Users.Include(u => u.AuthorProfile).FirstOrDefaultAsync(u => u.Id == userId);
-
-                if (user == null) return (false, "NotFound");
-                if (user.AuthorProfile != null) return (false, "Ви вже є автором.");
-
-                user.AuthorProfile = new Author
+                try
                 {
-                    AuthorId = user.Id,
-                    AuthorBio = dto.AuthorBio.Trim()
-                };
+                    var user = await _db.Users
+                        .Include(u => u.AuthorProfile)
+                        .FirstOrDefaultAsync(u => u.Id == userId);
 
-                await _db.SaveChangesAsync();
-                return (true, null);
+                    if (user == null) return (false, "NotFound");
+                    if (user.AuthorProfile != null) return (false, "Ви вже є автором.");
+
+                    user.AuthorProfile = new Author
+                    {
+                        AuthorId = user.Id,
+                        AuthorBio = dto.AuthorBio.Trim()
+                    };
+
+                    await _db.SaveChangesAsync();
+                    return (true, null);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"BecomeAuthorAsync error: {ex.Message}");
+                    return (false, "ServerError");
+                }
             }
+
             public async Task<(bool Success, string? Bio, string? Error)> GetAuthorBioAsync(int userId)
             {
-                var author = await _db.Authors
-                    .FirstOrDefaultAsync(a => a.AuthorId == userId);
+                try
+                {
+                    var author = await _db.Authors
+                        .FirstOrDefaultAsync(a => a.AuthorId == userId);
 
-                if (author == null) return (false, null, "NotFound");
+                    if (author == null) return (false, null, "NotFound");
 
-                return (true, author.AuthorBio, null);
+                    return (true, author.AuthorBio, null);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"GetAuthorBioAsync error: {ex.Message}");
+                    return (false, null, "ServerError");
+                }
+
+
             }
 
 
         }
-
-       
     }
 }
