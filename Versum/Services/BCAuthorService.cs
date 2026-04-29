@@ -44,25 +44,26 @@ namespace Versum.Services
                 }
             }
 
-            public async Task<(bool Success, string? Bio, string? Error)> GetAuthorBioAsync(int userId)
+            public async Task<(bool Success, string? Bio, string? Error)> GetAuthorBioAsync(string username)
             {
-                try
-                {
-                    var author = await _db.Authors
-                        .FirstOrDefaultAsync(a => a.AuthorId == userId);
+            try
+            {
+                var author = await _db.Authors
+                    .Include(a => a.User)
+                    .FirstOrDefaultAsync(a => a.User.Username == username);
 
-                    if (author == null) return (false, null, "NotFound");
+                if (author == null) return (false, null, "NotFound");
 
-                    return (true, author.AuthorBio, null);
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"GetAuthorBioAsync error: {ex.Message}");
-                    return (false, null, "ServerError");
-                }
-
-
+                return (true, author.AuthorBio, null);
             }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"GetAuthorBioAsync error: {ex.Message}");
+                return (false, null, "ServerError");
+            }
+
+
+        }
             public async Task<(bool Success, string? Error)> UpdateAuthorBioAsync(int userId, BecomeAuthorDto dto)
             {
                 try

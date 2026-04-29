@@ -48,10 +48,10 @@ namespace Versum.Controllers
             });
         }
 
-        [HttpGet("{Id}/author-bio")]
-        public async Task<IActionResult> GetAuthorBio(int Id)
+        [HttpGet("{Username}/author-bio")]
+        public async Task<IActionResult> GetAuthorBio(string Username)
         {
-            var (success, bio, error) = await _authorService.GetAuthorBioAsync(Id);
+            var (success, bio, error) = await _authorService.GetAuthorBioAsync(Username);
 
             if (!success)
             {
