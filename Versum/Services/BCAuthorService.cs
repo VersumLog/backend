@@ -12,6 +12,7 @@ namespace Versum.Services
         {
             Task<(bool Success, string? Error)> BecomeAuthorAsync(int userId, BecomeAuthorDto dto);
             Task<(bool Success, string? Bio, string? Error)> GetAuthorBioAsync(int userId);
+            Task<(bool Success, string? Error)> UpdateAuthorBioAsync(int userId, BecomeAuthorDto dto);
         }
         public class AuthorService : IAuthorService
         {
@@ -69,6 +70,26 @@ namespace Versum.Services
                 }
 
 
+            }
+            public async Task<(bool Success, string? Error)> UpdateAuthorBioAsync(int userId, BecomeAuthorDto dto)
+            {
+                try
+                {
+                    var author = await _db.Authors
+                        .FirstOrDefaultAsync(a => a.AuthorId == userId);
+
+                    if (author == null) return (false, "NotFound");
+
+                    author.AuthorBio = dto.AuthorBio.Trim();
+
+                    await _db.SaveChangesAsync();
+                    return (true, null);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"UpdateAuthorBioAsync error: {ex.Message}");
+                    return (false, "ServerError");
+                }
             }
 
 

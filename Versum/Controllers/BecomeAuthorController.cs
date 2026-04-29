@@ -62,7 +62,22 @@ namespace Versum.Controllers
 
             return Ok(new { bio });
         }
+        [HttpPost("update-author-bio")]
+        [Authorize]
+        public async Task<IActionResult> UpdateAuthorBio([FromBody] BecomeAuthorDto dto)
+        {
+            var id = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
+            var (success, error) = await _authorService.UpdateAuthorBioAsync(id, dto);
+
+            if (!success)
+            {
+                if (error == "NotFound") return NotFound("Ви не є автором.");
+                if (error == "ServerError") return StatusCode(500, new { message = "Щось пішло не так. Спробуйте пізніше." });
+            }
+
+            return Ok(new { message = "Біо успішно оновлено!" });
+        }
 
 
     }
