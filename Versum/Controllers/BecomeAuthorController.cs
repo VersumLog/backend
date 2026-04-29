@@ -5,6 +5,8 @@ using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using Versum.Models;
 using Versum.Services;
+using static Versum.Services.BCAuthorService;
+using static Versum.Services.BCAuthorService.AuthorService;
 
 namespace Versum.Controllers
 {
@@ -14,67 +16,54 @@ namespace Versum.Controllers
     [Route("api/[controller]")]
     public class BecomeAuthorController : ControllerBase
     {
+        private readonly IAuthorService _authorService;
 
-        private readonly ApplicationDbContext _db;
-        private readonly IEmailService _emailService;
-        private readonly IConfiguration _configuration;
-        public BecomeAuthorController(ApplicationDbContext db, IEmailService emailService, IConfiguration configuration)
+        public BecomeAuthorController(IAuthorService authorService)
         {
-            _db = db;
-            _emailService = emailService;
-            _configuration = configuration;
+            _authorService = authorService;
         }
-
 
         [HttpPost("become-author-button")]
         [Authorize]
         public async Task<IActionResult> BecomeAuthor([FromBody] BecomeAuthorDto dto)
         {
-            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (!int.TryParse(userIdStr, out var Id)) return Unauthorized();
+            var id = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
-           
-            var user = await _db.Users.Include(u => u.AuthorProfile).FirstOrDefaultAsync(u => u.Id == Id);
+            var (success, error) = await _authorService.BecomeAuthorAsync(id, dto);
 
-            if (user == null) return NotFound();
-
-          
-            if (user.AuthorProfile != null)
-                return BadRequest("Ви вже є автором.");
-
-            
-            user.AuthorProfile = new Author
+            if (!success)
             {
-                AuthorId = user.Id,
-                AuthorBio = dto.AuthorBio.Trim()
-            };
-
-            await _db.SaveChangesAsync();
+                if (error == "NotFound") return NotFound();
+                return BadRequest(new { message = error });
+            }
 
             return Ok(new
             {
                 message = "Вітаємо, ви стали автором!",
                 opportunities = new[]
-                 {
+                {
             "Можливість писати",
-           
+
                  },
-               
-            }); ;
+
+            });
         }
 
         [HttpGet("{Id}/author-bio")]
         public async Task<IActionResult> GetAuthorBio(int Id)
         {
-            
-            var authorInfo = await _db.Authors
-                .FirstOrDefaultAsync(a => a.AuthorId == Id);
+            var (success, bio, error) = await _authorService.GetAuthorBioAsync(Id);
 
-            if (authorInfo == null)
-                return NotFound("Цей користувач не є автором або профілю не існує.");
+            if (!success)
+            {
+                if (error == "NotFound")
+                    return NotFound("Цей користувач не є автором або профілю не існує.");
+            }
 
-            return Ok(new { bio = authorInfo.AuthorBio });
+            return Ok(new { bio });
         }
+
+
 
     }
 };

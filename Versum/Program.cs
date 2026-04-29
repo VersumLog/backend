@@ -8,11 +8,12 @@ using System.Text;
 using Versum;
 using Versum.Hubs;
 using Versum.Services;
+using static Versum.Services.BCAuthorService;
 
 var builder = WebApplication.CreateBuilder(args);
 
 
-
+builder.Services.AddAuthorization();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -33,9 +34,11 @@ builder.Services.AddCors(options => {
     });
 });
 
+
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IProfileService, ProfileService>();
+builder.Services.AddScoped<IAuthorService, AuthorService>();
 
 builder.Services.AddAuthentication(options =>
 {
