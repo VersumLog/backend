@@ -84,16 +84,15 @@ namespace Versum.Services
             if (user == null)
                 return (false, "Користувача не знайдено.");
 
-            
             bool passwordValid = BCrypt.Net.BCrypt.Verify(deleteDto.Password, user.PasswordHash);
             if (!passwordValid)
                 return (false, "Неправильний пароль, введіть ще раз або вийдіть.");
 
+            var shortGuid = Guid.NewGuid().ToString("N").Substring(0, 8);
 
-           
-            user.Email = $"deleted_{Guid.NewGuid()}@anonymized.com";
-            user.Username = $"anon_{Guid.NewGuid():N}"; 
-            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(Guid.NewGuid().ToString()); 
+            user.Email = $"del_{shortGuid}@anon.com"; // Близько 21 символу
+            user.Username = $"anon_{shortGuid}";      // 13 символів
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(Guid.NewGuid().ToString());
             user.IsDeleted = true;
 
             if (user.Profile != null)
@@ -107,12 +106,16 @@ namespace Versum.Services
                 await _db.SaveChangesAsync();
                 return (true, null);
             }
-            catch (DbUpdateException)
+            catch (DbUpdateException ex)
             {
-                return (false, "Сталася помилка при зверненні до бази даних.");
+                var realError = ex.InnerException?.Message ?? ex.Message;
+                Console.WriteLine($"DB_ERROR при видаленні акаунта: {realError}");
+
+                return (false, "Сталася помилка при зверненні до бази даних. Перевірте консоль сервера.");
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Console.WriteLine($"СЕРВЕРНА_ПОМИЛКА: {ex.Message}");
                 return (false, "Сталася непередбачувана помилка на сервері.");
             }
         }

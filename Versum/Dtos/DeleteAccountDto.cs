@@ -12,4 +12,4 @@ namespace Versum.Dtos
         public string Password { get; set; } = string.Empty;
     }
 }
-}
+
