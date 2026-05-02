@@ -80,7 +80,7 @@ namespace Versum.Controllers
                 Console.WriteLine($"Gmail sending error: {ex.Message}");// logs error but doesn't stop the login process
             }
 
-            return Ok(new { token = resultMessage, message = "Вхід успішний" });
+            return Ok(new { token = resultMessage, userGmail, username, message = "Вхід успішний" });
         }
 
         [HttpPost("forgot-password")]
