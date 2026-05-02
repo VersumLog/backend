@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Versum.Models;
 
-namespace Versum
+namespace Versum.Context
 {
     public class ApplicationDbContext : DbContext
     {

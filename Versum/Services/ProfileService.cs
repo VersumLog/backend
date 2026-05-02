@@ -2,6 +2,7 @@
 using System.Security.Cryptography;
 using System.Text;
 using Versum.Dtos;
+using Versum.Context;
 
 namespace Versum.Services
 {
@@ -61,6 +62,10 @@ namespace Versum.Services
 
         public async Task<UserProfileResponseDto?> GetProfileByUsernameAsync(string username)
         {
+            if (string.IsNullOrWhiteSpace(username))
+            {
+                throw new ArgumentException("Username cannot be null or empty.", nameof(username));
+            }
             return await _db.Users
                 .Where(u => u.Username == username)
                 .Select(u => new UserProfileResponseDto
