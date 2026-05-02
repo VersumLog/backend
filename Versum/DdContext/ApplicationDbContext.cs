@@ -12,10 +12,9 @@ namespace Versum
 
         public DbSet<Post> Posts { get; set; }
         public DbSet<User> Users { get; set; }
-
         public DbSet<UserProfile> Profiles { get; set; } 
-
         public DbSet<Author> Authors { get; set; }
+        public DbSet<Genre> Genres { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -33,6 +32,15 @@ namespace Versum
             .WithOne(p => p.User)
             .HasForeignKey<UserProfile>(p => p.UserId)
             .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Post>()
+            .HasOne(p => p.User)
+            .WithMany(u => u.Posts)
+            .HasForeignKey(p => p.UserId);
+
+            modelBuilder.Entity<Genre>()
+            .HasMany(p => p.Posts)
+            .WithMany(g => g.Genres);
         }
     }
 }

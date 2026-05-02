@@ -8,9 +8,9 @@ namespace Versum.Models
 
 
         [Key, ForeignKey("User")]
-        public int AuthorId { get; set; }  
+        public int AuthorId { get; set; }
 
-        public string? AuthorBio { get; set; }
+        [MaxLength(500)] public string? AuthorBio { get; set; }
 
         public virtual User User { get; set; } = null!;
     }
