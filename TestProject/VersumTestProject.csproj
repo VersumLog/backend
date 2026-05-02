@@ -25,7 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="ServicesTest\AuthService\" />
+    <Folder Include="ControllersTest\" />
     <Folder Include="ServicesTest\BCAuthorService\" />
   </ItemGroup>
 

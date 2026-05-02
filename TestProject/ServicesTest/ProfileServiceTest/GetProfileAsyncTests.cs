@@ -2,7 +2,7 @@
 using Versum;
 using Versum.Context; 
 using Versum.Services;
-using Xunit;
+
 
 namespace VersumTestProject.ServicesTest.ProfileServiceTest
 {
@@ -93,20 +93,6 @@ namespace VersumTestProject.ServicesTest.ProfileServiceTest
             });
         }
        
-        /*[Fact]
-        public async Task GetProfileAsync_WhenProfileDoesNotExist_ThrowsException()
-        {
-            // Arrange
-            using var context = new ApplicationDbContext(_options);
-            var emailServiceMock = new Mock<IEmailService>();
-            var profileService = new ProfileService(context, emailServiceMock.Object);
-
-            // Act & Assert
-            await Assert.ThrowsAsync<KeyNotFoundException>(async () =>
-            {
-                await profileService.GetProfileAsync(999); // Такого ID немає в базі
-            });
-        }
-    */
+      
     }
 }
