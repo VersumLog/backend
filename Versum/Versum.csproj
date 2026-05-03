@@ -37,7 +37,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="DdContext\" />
+    <Folder Include="DbContext\" />
   </ItemGroup>
 
   <ItemGroup>

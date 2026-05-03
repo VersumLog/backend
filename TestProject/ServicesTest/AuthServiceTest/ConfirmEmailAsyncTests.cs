@@ -5,7 +5,6 @@ using System.Security.Cryptography;
 using System.Text;
 using Versum;
 using Versum.Context;
-using Versum.Dtos;
 using Versum.Services;
 
 namespace VersumTestProject.ServicesTest.AuthServiceTest
