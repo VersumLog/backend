@@ -22,13 +22,47 @@ namespace Versum.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("Versum.Models.IsAuthor", b =>
+            modelBuilder.Entity("Genre", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Genres");
+                });
+
+            modelBuilder.Entity("GenrePost", b =>
+                {
+                    b.Property<int>("GenresId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("PostsId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("GenresId", "PostsId");
+
+                    b.HasIndex("PostsId");
+
+                    b.ToTable("GenrePost");
+                });
+
+            modelBuilder.Entity("Versum.Models.Author", b =>
                 {
                     b.Property<int>("AuthorId")
                         .HasColumnType("integer");
 
                     b.Property<string>("AuthorBio")
-                        .HasColumnType("text");
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
 
                     b.HasKey("AuthorId");
 
@@ -43,22 +77,30 @@ namespace Versum.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Author")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<string>("Content")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(500000)
+                        .HasColumnType("character varying(500000)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(600)
+                        .HasColumnType("character varying(600)");
+
                     b.Property<string>("Title")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("Posts");
                 });
@@ -150,35 +192,64 @@ namespace Versum.Migrations
                     b.ToTable("Profiles");
                 });
 
+            modelBuilder.Entity("GenrePost", b =>
+                {
+                    b.HasOne("Genre", null)
+                        .WithMany()
+                        .HasForeignKey("GenresId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Versum.Post", null)
+                        .WithMany()
+                        .HasForeignKey("PostsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Versum.Models.Author", b =>
+                {
+                    b.HasOne("Versum.User", "User")
+                        .WithOne("AuthorProfile")
+                        .HasForeignKey("Versum.Models.Author", "AuthorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Versum.Post", b =>
+                {
+                    b.HasOne("Versum.User", "User")
+                        .WithMany("Posts")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Versum.UserProfile", b =>
                 {
                     b.HasOne("Versum.User", "User")
                         .WithOne("Profile")
-                        .HasForeignKey("Versum.UserProfile", "UserId");
+                        .HasForeignKey("Versum.UserProfile", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
-                    modelBuilder.Entity("Versum.Models.IsAuthor", b =>
-                        {
-                            b.HasOne("Versum.User", "User")
-                                .WithOne("AuthorProfile")
-                                .HasForeignKey("Versum.Models.IsAuthor", "AuthorId")
-
-                                .OnDelete(DeleteBehavior.Cascade)
-                                .IsRequired();
-
-                            b.Navigation("User");
-                        });
-
-                    modelBuilder.Entity("Versum.User", b =>
-                        {
-
-                            b.Navigation("Profile")
-                                .IsRequired();
-
-                            b.Navigation("AuthorProfile");
-
-                        });
-#pragma warning restore 612, 618
+                    b.Navigation("User");
                 });
+
+            modelBuilder.Entity("Versum.User", b =>
+                {
+                    b.Navigation("AuthorProfile");
+
+                    b.Navigation("Posts");
+
+                    b.Navigation("Profile")
+                        .IsRequired();
+                });
+#pragma warning restore 612, 618
         }
-    }; 
+    }
 }
