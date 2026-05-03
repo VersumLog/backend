@@ -5,7 +5,7 @@
 namespace Versum.Migrations
 {
     /// <inheritdoc />
-    public partial class UserRevert : Migration
+    public partial class PostsTableRework : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
