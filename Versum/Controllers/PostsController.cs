@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Versum.Hubs;
+using Versum.Context;
 
 namespace Versum.Controllers
 {
