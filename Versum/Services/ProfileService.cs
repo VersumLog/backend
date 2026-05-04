@@ -69,6 +69,7 @@ namespace Versum.Services
                     Name = u.Profile.Name ?? "none",
                     Bio = u.Profile.Bio ?? "none",
                     CreatedAt = u.CreatedAt,
+                    IsAuthor = (u.AuthorProfile != null),
                     IsOwner = u.Id == claimedUserID
                 })
                 .FirstOrDefaultAsync();
