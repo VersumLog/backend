@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Versum.Context;
@@ -11,9 +12,11 @@ using Versum.Context;
 namespace Versum.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260504164605_PostsAuthors")]
+    partial class PostsAuthors
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -92,9 +95,6 @@ namespace Versum.Migrations
                         .IsRequired()
                         .HasMaxLength(600)
                         .HasColumnType("character varying(600)");
-
-                    b.Property<bool>("IsDraft")
-                        .HasColumnType("boolean");
 
                     b.Property<string>("Title")
                         .IsRequired()

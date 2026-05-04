@@ -55,6 +55,7 @@ namespace Versum.Services
 
                 if (author == null) return (false, null, "NotFound");
 
+
                 return (true, author.AuthorBio, null);
             }
             catch (Exception ex)

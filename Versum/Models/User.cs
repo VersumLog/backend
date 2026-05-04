@@ -28,6 +28,5 @@ namespace Versum
 
         public virtual Author? AuthorProfile { get; set; }
 
-
     }
 }

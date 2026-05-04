@@ -14,7 +14,7 @@ namespace VersumTestProject.ServicesTest.AuthServiceTest
         private readonly DbContextOptions<ApplicationDbContext> _options;
         private readonly Mock<IEmailService> _emailServiceMock;
         private readonly Mock<IConfiguration> _configurationMock;
-
+      
         public RegisterAsyncTests()
         {
             _options = new DbContextOptionsBuilder<ApplicationDbContext>()

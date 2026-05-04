@@ -1,4 +1,6 @@
 <Solution>
-  <Project Path="TestProject/VersumTestProject.csproj" />
+  <Project Path="TestProject/VersumTestProject.csproj">
+    <Build Solution="Debug|*" Project="false" />
+  </Project>
   <Project Path="Versum/Versum.csproj" />
 </Solution>
