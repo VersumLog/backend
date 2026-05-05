@@ -47,7 +47,7 @@ namespace Versum.Services
             }
         }
 
-        public async Task<(bool Success, string? Error, int? PostId)> SaveDraftAsync(int authorId, PostDto dto)
+        public async Task<(bool Success, string? Error, int? PostId)> CreateDraftAsync(int authorId, PostDto dto)
         {
             try
             {

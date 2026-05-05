@@ -53,9 +53,9 @@ namespace Versum.Controllers
         }
 
 
-        [HttpPost("draft")]
+        [HttpPost("create-draft")]
         [Authorize]
-        public async Task<IActionResult> SaveDraft([FromBody] PostDto dto)
+        public async Task<IActionResult> CreateDraft([FromBody] PostDto dto)
         {
 
             var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -64,7 +64,7 @@ namespace Versum.Controllers
                 return Unauthorized();
             }
 
-            var (success, error, postId) = await _postService.SaveDraftAsync(authorId, dto);
+            var (success, error, postId) = await _postService.CreateDraftAsync(authorId, dto);
 
             if (!success)
             {
