@@ -26,7 +26,6 @@
 
   <ItemGroup>
     <Folder Include="ControllersTest\" />
-    <Folder Include="ServicesTest\BCAuthorService\" />
   </ItemGroup>
 
 </Project>
