@@ -1,6 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 using Versum.Dtos;
 using Versum.Models;
+using Versum.Core.Enums;
+using Versum.Extensions;
 
 namespace Versum.Services
 {
@@ -76,5 +79,48 @@ namespace Versum.Services
             }
         }
 
-    }
+        private IQueryable<UserDraftsGetDto> MapToDraftDto(IQueryable<Post> query)
+        {
+            return query.Select(p => new UserDraftsGetDto
+            {
+                PostId = p.Id,
+                Title = p.Title,
+                Description = p.Description ?? "none",
+                Content = p.Content ?? "none",
+                CreatedAt = p.CreatedAt,
+                Username = p.Author.User.Username,
+                Name = p.Author.User.Profile.Name ?? "none",
+                Genres = p.Genres
+            });
+        }
+
+        public async Task<List<UserDraftsGetDto>?> GetUserDraftsAsync(int? claimedUserID, FilterOptions filter, bool ascending)
+        {
+            var author = await _db.Authors
+            .FirstOrDefaultAsync(a => a.User.Id == claimedUserID);
+            if (author == null) return null;
+            var query = _db.Posts
+        .Where(p => p.AuthorId == author.AuthorId)
+        .OnlyDrafts()
+        .ApplySorting(filter, ascending);
+
+            return await MapToDraftDto(query).ToListAsync();
+        }
+
+        public async Task<List<UserDraftsGetDto>?> GetUserPostsAsync(UserPostsRequestDto dto)
+        {
+            var user = await _db.Users.FirstOrDefaultAsync(u => u.Username == dto.Username);
+            if (user == null) return null;
+            var author = await _db.Authors
+            .FirstOrDefaultAsync(a => a.User.Id == user.Id);
+            if (author == null) return null;
+            var query = _db.Posts
+        .Where(p => p.AuthorId == author.AuthorId)
+        .OnlyPublished()
+        .ApplySorting(dto.Filter, dto.Ascending);
+
+            return await MapToDraftDto(query).ToListAsync();
+        }
+
+        }
 }

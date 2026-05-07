@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using Versum.Core.Enums;
 using Versum.Dtos;
 using Versum.Hubs;
 using Versum.Services;
@@ -79,10 +80,49 @@ namespace Versum.Controllers
             });
         }
 
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Post>>> GetPosts()
+        [HttpGet("get-drafts")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<Post>>> GetDrafts(
+            [FromQuery] FilterOptions filter,
+            [FromQuery] bool ascending)
         {
-            return await _context.Posts.OrderByDescending(p => p.CreatedAt).ToListAsync();
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+            if (userIdClaim == null) return Unauthorized();
+
+            int currentUserId = int.Parse(userIdClaim.Value);
+
+
+
+            var drafts = await _postService.GetUserDraftsAsync(currentUserId, filter, ascending);
+
+            if (drafts == null)
+            {
+                return NotFound(new { message = "Чернетки не знайдено" });
+            }
+
+            return Ok(drafts);
+
+        }
+
+        [HttpGet("get-posts")]
+        public async Task<ActionResult<IEnumerable<Post>>> GetPosts(
+            [FromQuery] UserPostsRequestDto dto
+            )
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+            var drafts = await _postService.GetUserPostsAsync(dto);
+
+            if (drafts == null)
+            {
+                return NotFound(new { message = "Чернетки не знайдено" });
+            }
+
+            return Ok(drafts);
+
         }
     }
 }

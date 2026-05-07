@@ -1,4 +1,5 @@
-﻿using Versum.Dtos;
+﻿using Versum.Core.Enums;
+using Versum.Dtos;
 
 namespace Versum.Services
 {
@@ -6,5 +7,7 @@ namespace Versum.Services
     {
         Task<(bool Success, string? Error)> PublishPostAsync(int Id, PostDto dto);
         Task<(bool Success, string? Error, int? PostId)> CreateDraftAsync(int authorId, PostDto dto);
+        Task<List<UserDraftsGetDto>?> GetUserDraftsAsync(int? claimedUserID, FilterOptions filter, bool ascending);
+        Task<List<UserDraftsGetDto>?> GetUserPostsAsync(UserPostsRequestDto dto);
     }
 }
