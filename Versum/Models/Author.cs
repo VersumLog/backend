@@ -13,5 +13,6 @@ namespace Versum.Models
         [MaxLength(500)] public string? AuthorBio { get; set; }
 
         public virtual User User { get; set; } = null!;
+        public virtual ICollection<Post> Posts { get; set; } = new List<Post>();
     }
 }
