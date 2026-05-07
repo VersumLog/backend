@@ -23,8 +23,8 @@ namespace VersumTestProject.ServicesTest
         private const string TestUsername = "vixy";
         private const string TestEmail = "vixy@test.com";
         private const string TestPassword = "SecurePassword123";
-        const string ExistingUser = "existing_user";
-        const string ExistingEmail = "existing_user";
+        private const string ExistingUser = "existing_user";
+        private const string ExistingEmail = "existing_user";
 
 
         private const string ValidRawToken = "valid_token_123";

@@ -23,7 +23,7 @@ namespace VersumTestProject.ServicesTest
         private readonly ProfileService _profileService;
 
         private const string TestUsername = "vixy";
-        const string UpdatedUsername = "vixy_upd";
+        private const string UpdatedUsername = "vixy_upd";
         private const string TestEmail = "vixy@test.com";
         private const string TestBio = "bio";
         private const string TestName = "viktoria";
