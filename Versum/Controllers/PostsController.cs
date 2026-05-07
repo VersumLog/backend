@@ -28,17 +28,17 @@ namespace Versum.Controllers
 
 
 
-        [HttpPost("create-post")]
+        [HttpPost("{postId}/publish-post")]
         [Authorize]
-        public async Task<IActionResult> CreatePost([FromBody] PostDto dto)
+        public async Task<IActionResult> CreatePost(int postId)
         {
             var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (!int.TryParse(userIdClaim, out int authorId))
+            if (!int.TryParse(userIdClaim, out int userId))
             {
                 return Unauthorized();
             }
 
-            var (success, error) = await _postService.PublishPostAsync(authorId, dto);
+            var (success, error) = await _postService.PublishPostAsync(postId, userId);
             if (!success)
             {
                 if (error == "AuthorNotFound") return NotFound(new { message = "Профіль автора не знайдено" });
@@ -55,7 +55,7 @@ namespace Versum.Controllers
 
         [HttpPost("create-draft")]
         [Authorize]
-        public async Task<IActionResult> CreateDraft([FromBody] PostDto dto)
+        public async Task<IActionResult> CreateDraft([FromBody] CreateDraftDto dto)
         {
 
             var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -74,10 +74,32 @@ namespace Versum.Controllers
 
             return StatusCode(201, new
             {
-                message = "Чернетку збережено",
+                message = "Чернетку створено",
                 postId = postId
             });
         }
+
+        [HttpPost("{postId}/update-draft")]
+        [Authorize]
+        public async Task<IActionResult> UpdateDraft(int postId,[FromBody] PostDto dto)
+        {
+
+            var (success, error) = await _postService.UpdateDraftAsync(postId, dto);
+
+            if (!success)
+            {
+                if (error == "DraftNotFound") return NotFound(new { message = "Чернетку не знайдено" });
+                return BadRequest(new { message = error });
+            }
+
+            return StatusCode(201, new
+            {
+                message = "Чернетку збережено",
+ 
+            });
+        }
+
+
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Post>>> GetPosts()
