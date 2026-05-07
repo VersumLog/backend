@@ -2,6 +2,7 @@
 using System.Security.Cryptography;
 using System.Text;
 using Versum.Dtos;
+using Versum.Models;
 
 namespace Versum.Services
 {
@@ -21,7 +22,7 @@ namespace Versum.Services
             .FirstOrDefaultAsync(u => u.Id == UserId);
             if (user == null)
             {
-                return (false,"Чому нас вважають за одну людину?");
+                return (false, "Чому нас вважають за одну людину?");
             }
 
             bool usernameExists = await _db.Users.AnyAsync(u => u.Username == dto.Username);
@@ -118,6 +119,69 @@ namespace Versum.Services
                 Console.WriteLine($"СЕРВЕРНА_ПОМИЛКА: {ex.Message}");
                 return (false, "Сталася непередбачувана помилка на сервері.");
             }
+
+
+
         }
+
+        public async Task<int?> GetUserIdByUsernameAsync(string username)
+        {
+            return await _db.Users
+                .Where(u => u.Username.ToLower() == username.ToLower())
+                .Select(u => (int?)u.Id)
+                .FirstOrDefaultAsync();
+        }
+
+            public async Task<(bool success, string? error)> ToggleFollowAsync(int followerId, int followingId)
+        {
+            if (followerId == followingId)
+            {
+                return (false, "Ви не можете підписатися на самого себе.");
+            }
+
+           
+            var existingFollow = await _db.Follows
+                .FirstOrDefaultAsync(f => f.FollowerId == followerId && f.FollowingId == followingId);
+
+            
+            var currentUser = await _db.Users.FindAsync(followerId);
+
+           
+            var targetUser = await _db.Users.AnyAsync(u => u.Id == followingId);
+
+            if (currentUser == null || !targetUser)
+            {
+                return (false, "Користувача не знайдено.");
+            }
+
+            if (existingFollow != null)
+            {
+                
+                _db.Follows.Remove(existingFollow);
+
+                if (currentUser.FollowingCount > 0)
+                {
+                    currentUser.FollowingCount--; 
+                }
+            }
+            else
+            {
+                
+                var newFollow = new Versum.Models.Follow
+                {
+                    FollowerId = followerId,
+                    FollowingId = followingId
+                };
+                _db.Follows.Add(newFollow);
+
+                currentUser.FollowingCount++; 
+            }
+
+            await _db.SaveChangesAsync();
+            return (true, null);
+        }
+
     }
+
 }
+

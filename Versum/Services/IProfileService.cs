@@ -6,4 +6,8 @@ public interface IProfileService
     Task<UserProfileResponseDto?> GetProfileByUsernameAsync(string username, int? claimedUserID);
 
     Task<(bool success, string? error)> DeleteAndAnonymizeAccount(int userId, DeleteAccountDto deleteDto);
+
+    Task<(bool success, string? error)> ToggleFollowAsync(int followerId, int followingId);
+
+    Task<int?> GetUserIdByUsernameAsync(string username);
 }

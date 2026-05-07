@@ -29,5 +29,10 @@ namespace Versum
         public virtual Author? AuthorProfile { get; set; }
 
         public ICollection<Post> Posts { get; set; } = new List<Post>();
+
+        public int FollowingCount { get; set; } = 0;
+
+        public ICollection<Follow> Followers { get; set; } = new List<Follow>(); 
+
     }
 }

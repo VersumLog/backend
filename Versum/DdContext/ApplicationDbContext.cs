@@ -16,31 +16,26 @@ namespace Versum
         public DbSet<Author> Authors { get; set; }
         public DbSet<Genre> Genres { get; set; }
 
+        public DbSet<Follow> Follows { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
-  
         {
-            modelBuilder.Entity<User>().HasIndex(u => u.Username).IsUnique();
-            modelBuilder.Entity<User>().HasIndex(u => u.Email).IsUnique();
+            base.OnModelCreating(modelBuilder);
 
-            modelBuilder.Entity<User>()
-            .HasIndex(u => new { u.Email, u.PasswordResetToken });
-            modelBuilder.Entity<User>().HasIndex(u => u.EmailConfirmationTokenHash).IsUnique();
+            modelBuilder.Entity<Follow>(entity =>
+            {
+               
+                entity.HasKey(f => f.Id);
 
-            modelBuilder.Entity<User>()
-            .HasOne(u => u.Profile)
-            .WithOne(p => p.User)
-            .HasForeignKey<UserProfile>(p => p.UserId)
-            .OnDelete(DeleteBehavior.Cascade);
+                
+                entity.HasOne(f => f.Follower)
+                    .WithMany()
+                    .HasForeignKey(f => f.FollowerId);
 
-            modelBuilder.Entity<Post>()
-            .HasOne(p => p.User)
-            .WithMany(u => u.Posts)
-            .HasForeignKey(p => p.UserId);
-
-            modelBuilder.Entity<Genre>()
-            .HasMany(p => p.Posts)
-            .WithMany(g => g.Genres);
+                entity.HasOne(f => f.Following)
+                    .WithMany()
+                    .HasForeignKey(f => f.FollowingId);
+            });
         }
     }
 }

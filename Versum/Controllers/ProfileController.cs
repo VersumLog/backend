@@ -76,5 +76,27 @@ namespace Versum.Controllers
             return Ok(new { message = "Акаунт успішно видалено та анонімізовано" });
         }
 
+        [Authorize]
+        [HttpPost("follow/{username}")]
+        public async Task<IActionResult> ToggleFollow(string username)
+        {
+            var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+            if (userIdClaim == null) return Unauthorized();
+            int currentUserId = int.Parse(userIdClaim.Value);
+
+            
+            var targetUserId = await _profileService.GetUserIdByUsernameAsync(username);
+
+            if (targetUserId == null)
+                return NotFound(new { message = "Користувача не знайдено" });
+
+            var (success, error) = await _profileService.ToggleFollowAsync(currentUserId, targetUserId.Value);
+
+            if (!success)
+                return BadRequest(new { message = error });
+
+            return Ok(new { message = "Статус підписки змінено" });
+        }
+
     }
 }
