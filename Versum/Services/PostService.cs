@@ -15,12 +15,12 @@ namespace Versum.Services
         }
 
 
-        public async Task<(bool Success, string? Error)> PublishPostAsync(int postId, int userId)
+        public async Task<(bool Success, string? Error)> PublishDraftAsync(int postId, int userId)
         {
             try
             {
                 var post = await _db.Posts
-     .Include(p => p.Author)      
+        .Include(p => p.Author)      
          .ThenInclude(a => a.User) 
      .FirstOrDefaultAsync(u => u.Id == postId);
 

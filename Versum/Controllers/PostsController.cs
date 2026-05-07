@@ -28,7 +28,7 @@ namespace Versum.Controllers
 
 
 
-        [HttpPost("{postId}/publish-post")]
+        [HttpPost("{postId}/publish-draft")]
         [Authorize]
         public async Task<IActionResult> CreatePost(int postId)
         {
@@ -38,7 +38,7 @@ namespace Versum.Controllers
                 return Unauthorized();
             }
 
-            var (success, error) = await _postService.PublishPostAsync(postId, userId);
+            var (success, error) = await _postService.PublishDraftAsync(postId, userId);
             if (!success)
             {
                 if (error == "AuthorNotFound") return NotFound(new { message = "Профіль автора не знайдено" });
