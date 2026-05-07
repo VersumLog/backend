@@ -2,7 +2,7 @@
 using MailKit.Net.Smtp;
 using MimeKit;
 using Microsoft.Extensions.Options;
-
+using Versum.Context;
 public class EmailService : IEmailService
 {
     private readonly IConfiguration _config;
