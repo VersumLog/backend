@@ -27,7 +27,7 @@ jobs:
         run: dotnet restore
 
       - name: Test
-        run: dotnet test TestProject/TestProject.csproj --configuration Release --no-restore
+        run: dotnet test VersumTestProject/VersumTestProject.csproj --configuration Release --no-restore
 
       - name: Build with dotnet
         run: dotnet build --configuration Release --no-restore
