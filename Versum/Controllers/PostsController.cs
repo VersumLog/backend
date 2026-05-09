@@ -32,7 +32,7 @@ namespace Versum.Controllers
 
         [HttpPost("{postId}/publish-draft")]
         [Authorize]
-        public async Task<IActionResult> CreatePost(int postId)
+        public async Task<IActionResult> PublishDraft(int postId)
         {
             var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (!int.TryParse(userIdClaim, out int userId))
