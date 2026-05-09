@@ -105,7 +105,8 @@ namespace Versum.Controllers
             var (posts, error) = await _postService.GetUserPostsAsync(dto);
             if (error != null)
             {
-                return NotFound(new { message = error });
+                if (error == "UserNotFound") return NotFound(new { message = "Користувача не знайдено" });
+                return BadRequest(new { message = error });
             }
 
             return Ok(posts);

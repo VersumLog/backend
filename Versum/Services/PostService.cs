@@ -94,7 +94,7 @@ namespace Versum.Services
         public async Task<(List<UserPostsGetDto>?, string? Error)> GetUserPostsAsync(UserPostsRequestDto dto)
         {
             var user = await _db.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Username == dto.Username);
-            if (user == null) return new (null, "Користувача не знайдено");
+            if (user == null) return new (null, "UserNotFound");
             return (await _db.Posts
         .AsNoTracking()
         .Where(p => p.AuthorId == user.Id)
