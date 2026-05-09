@@ -7,7 +7,7 @@ namespace Versum.Services
     {
         Task<(bool Success, string? Error)> PublishPostAsync(int Id, PostDto dto);
         Task<(bool Success, string? Error, int? PostId)> CreateDraftAsync(int authorId, PostDto dto);
-        Task<List<UserDraftsGetDto>?> GetUserDraftsAsync(int? claimedUserID, FilterOptions filter, bool ascending);
-        Task<List<UserDraftsGetDto>?> GetUserPostsAsync(UserPostsRequestDto dto);
+        Task<List<UserPostsGetDto>> GetUserDraftsAsync(int claimedUserID, FilterOptions filter, bool ascending);
+        Task<(List<UserPostsGetDto>?, string? Error)> GetUserPostsAsync(UserPostsRequestDto dto);
     }
 }

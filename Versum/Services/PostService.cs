@@ -80,47 +80,28 @@ namespace Versum.Services
             }
         }
 
-        private IQueryable<UserDraftsGetDto> MapToDraftDto(IQueryable<Post> query)
+        public async Task<List<UserPostsGetDto>> GetUserDraftsAsync(int authorId, FilterOptions filter, bool ascending)
         {
-            return query.Select(p => new UserDraftsGetDto
-            {
-                PostId = p.Id,
-                Title = p.Title,
-                Description = p.Description ?? "none",
-                Content = p.Content ?? "none",
-                CreatedAt = p.CreatedAt,
-                Username = p.Author.User.Username,
-                Name = p.Author.User.Profile.Name ?? "none",
-                Genres = p.Genres
-            });
-        }
-
-        public async Task<List<UserDraftsGetDto>?> GetUserDraftsAsync(int? claimedUserID, FilterOptions filter, bool ascending)
-        {
-            var author = await _db.Authors
-            .FirstOrDefaultAsync(a => a.User.Id == claimedUserID);
-            if (author == null) return null;
-            var query = _db.Posts
-        .Where(p => p.AuthorId == author.AuthorId)
+            return await _db.Posts
+        .AsNoTracking()
+        .Where(p => p.AuthorId == authorId)
         .OnlyDrafts()
-        .ApplySorting(filter, ascending);
-
-            return await MapToDraftDto(query).ToListAsync();
+        .ApplySorting(filter, ascending)
+        .ProjectToPostDto()
+        .ToListAsync();
         }
 
-        public async Task<List<UserDraftsGetDto>?> GetUserPostsAsync(UserPostsRequestDto dto)
+        public async Task<(List<UserPostsGetDto>?, string? Error)> GetUserPostsAsync(UserPostsRequestDto dto)
         {
-            var user = await _db.Users.FirstOrDefaultAsync(u => u.Username == dto.Username);
-            if (user == null) return null;
-            var author = await _db.Authors
-            .FirstOrDefaultAsync(a => a.User.Id == user.Id);
-            if (author == null) return null;
-            var query = _db.Posts
-        .Where(p => p.AuthorId == author.AuthorId)
+            var user = await _db.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Username == dto.Username);
+            if (user == null) return new (null, "Користувача не знайдено");
+            return (await _db.Posts
+        .AsNoTracking()
+        .Where(p => p.AuthorId == user.Id)
         .OnlyPublished()
-        .ApplySorting(dto.Filter, dto.Ascending);
-
-            return await MapToDraftDto(query).ToListAsync();
+        .ApplySorting(dto.Filter, dto.Ascending)
+        .ProjectToPostDto()
+        .ToListAsync(), null);
         }
 
         }

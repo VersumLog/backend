@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using Versum.Core.Enums;
+using Versum.Dtos;
 using Versum.Models;
 
 namespace Versum.Extensions;
@@ -43,4 +44,19 @@ public static class PostExtensions
             FilterOptions.Description => query.OrderByDescending(p => p.Description),
             _ => query.OrderByDescending(p => p.Id)
         };
+
+    public static IQueryable<UserPostsGetDto> ProjectToPostDto(this IQueryable<Post> query)
+    {
+        return query.Select(p => new UserPostsGetDto
+        {
+            PostId = p.Id,
+            Title = p.Title,
+            Description = p.Description ?? "none",
+            Content = p.Content ?? "none",
+            CreatedAt = p.CreatedAt,
+            Username = p.Author.User.Username,
+            Name = p.Author.User.Profile.Name ?? "none",
+            Genres = p.Genres
+        });
+    }
 }

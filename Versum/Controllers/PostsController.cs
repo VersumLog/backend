@@ -84,46 +84,31 @@ namespace Versum.Controllers
 
         [HttpGet("get-drafts")]
         [Authorize]
-        public async Task<ActionResult<IEnumerable<Post>>> GetDrafts(
+        public async Task<ActionResult<IEnumerable<UserPostsGetDto>>> GetDrafts(
             [FromQuery] FilterOptions filter,
             [FromQuery] bool ascending)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
-            if (userIdClaim == null) return Unauthorized();
-
-            int currentUserId = int.Parse(userIdClaim.Value);
-
-
-
-            var drafts = await _postService.GetUserDraftsAsync(currentUserId, filter, ascending);
-
-            if (drafts == null)
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(userIdClaim, out int authorId))
             {
-                return NotFound(new { message = "Чернетки не знайдено" });
+                return Unauthorized();
             }
-
-            return Ok(drafts);
-
+            var drafts = await _postService.GetUserDraftsAsync(authorId, filter, ascending);
+            return Ok(drafts); //Користувачі, які не мають ролі автора або не мають створених чернеток отримують порожній список
         }
 
         [HttpGet("get-posts")]
-        public async Task<ActionResult<IEnumerable<Post>>> GetPosts(
+        public async Task<ActionResult<IEnumerable<UserPostsGetDto>>> GetPosts(
             [FromQuery] UserPostsRequestDto dto
             )
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-            var drafts = await _postService.GetUserPostsAsync(dto);
-
-            if (drafts == null)
+            var (posts, error) = await _postService.GetUserPostsAsync(dto);
+            if (error != null)
             {
-                return NotFound(new { message = "Чернетки не знайдено" });
+                return NotFound(new { message = error });
             }
 
-            return Ok(drafts);
+            return Ok(posts);
 
         }
     }

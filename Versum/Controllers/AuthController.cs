@@ -71,15 +71,6 @@ namespace Versum.Controllers
             if (!success)
                 return Unauthorized(new { message = resultMessage }); // checks if login fails (wrong password or user) -> returns error 401
 
-            try
-            {
-                //await _gmailService.SendLoginNotificationAsync(userGmail, username);// awaits email sending to avoid crashes
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Gmail sending error: {ex.Message}");// logs error but doesn't stop the login process
-            }
-
             return Ok(new { token = resultMessage, userGmail, username, message = "Вхід успішний" });
         }
 
