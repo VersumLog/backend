@@ -14,7 +14,7 @@ namespace Versum.Dtos
         public string Description { get; set; } = "";
 
         [Required(ErrorMessage = "Твір не може бути порожнім")]
-        [MaxLength(500000, ErrorMessage = "Максимум 600 символів")]
+        [MaxLength(500000, ErrorMessage = "Максимум 500000 символів")]
         [MinLength(10, ErrorMessage = "Мінімум 10 символів")]
         public string Content { get; set; } = "";
 
