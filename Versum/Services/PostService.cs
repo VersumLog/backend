@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Versum.Dtos;
-
+using Versum.Models;
+using Versum.Context;
 
 namespace Versum.Services
 {
