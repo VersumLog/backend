@@ -20,14 +20,12 @@ namespace Versum.Services
         {
             try
             {
-                var post = await _db.Posts
-        .Include(p => p.Author)      
-         .ThenInclude(a => a.User) 
-     .FirstOrDefaultAsync(u => u.Id == postId);
+              
+                var post = await _db.Posts.FirstOrDefaultAsync(p => p.Id == postId);
 
                 if (post == null) return (false, "PostNotFound");
 
-                if (post.Author.User.Id != userId) return (false, "YouAreNotAnOwnerOfDraft");
+                if (post.AuthorId != userId) return (false, "YouAreNotAnOwnerOfDraft");
 
                 post.IsDraft = false;
         
