@@ -71,7 +71,7 @@ namespace Versum.Services
         {
             try
             {
-                var draft = await _db.Posts.FirstOrDefaultAsync(p => p.Id == postId && p.Author.User.Id == userId);
+                var draft = await _db.Posts.FirstOrDefaultAsync(p => p.Id == postId && p.AuthorId == userId);
 
                 if (draft == null) return (false, "DraftNotFound");
 
