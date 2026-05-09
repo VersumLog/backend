@@ -14,5 +14,7 @@ namespace Versum
         public ICollection<Genre> Genres { get; set; } = new List<Genre>();
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public bool IsDraft { get; set; }
+        public bool IsDeleted { get; set; } = false;
+    
     }
 }

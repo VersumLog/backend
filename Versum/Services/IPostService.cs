@@ -6,5 +6,6 @@ namespace Versum.Services
     {
         Task<(bool Success, string? Error)> PublishPostAsync(int Id, PostDto dto);
         Task<(bool Success, string? Error, int? PostId)> CreateDraftAsync(int authorId, PostDto dto);
+        Task<(bool Success, string? Error)> DeletePostAsync(int userId, int postId);
     }
 }
