@@ -68,11 +68,11 @@ namespace Versum.Services
             }
         }
 
-        public async Task<(bool Success, string? Error)> UpdateDraftAsync(int postId, PostDto dto)
+        public async Task<(bool Success, string? Error)> UpdateDraftAsync(int postId,int userId, PostDto dto)
         {
             try
             {
-                var draft = await _db.Posts.FirstOrDefaultAsync(a => a.Id == postId);
+                var draft = await _db.Posts.FirstOrDefaultAsync(p => p.Id == postId && p.Author.User.Id == userId);
 
                 if (draft == null) return (false, "DraftNotFound");
 

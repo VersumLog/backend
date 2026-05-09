@@ -84,7 +84,13 @@ namespace Versum.Controllers
         public async Task<IActionResult> UpdateDraft(int postId,[FromBody] PostDto dto)
         {
 
-            var (success, error) = await _postService.UpdateDraftAsync(postId, dto);
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(userIdClaim, out int userId))
+            {
+                return Unauthorized();
+            }
+
+            var (success, error) = await _postService.UpdateDraftAsync(postId, userId, dto);
 
             if (!success)
             {
