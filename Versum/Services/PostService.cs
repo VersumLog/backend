@@ -19,27 +19,19 @@ namespace Versum.Services
         }
 
 
-        public async Task<(bool Success, string? Error)> PublishPostAsync(int authorId, PostDto dto)
+        public async Task<(bool Success, string? Error)> PublishDraftAsync(int postId, int userId)
         {
             try
             {
-                var author = await _db.Authors.FirstOrDefaultAsync(u => u.AuthorId == authorId);
+              
+                var post = await _db.Posts.FirstOrDefaultAsync(p => p.Id == postId);
 
-                if (author == null) return (false, "AuthorNotFound");
+                if (post == null) return (false, "PostNotFound");
 
-                var newPost = new Post
-                {
-                    Title = dto.Title,
-                    Description = dto.Description,
-                    Content = dto.Content,
-                    AuthorId = author.AuthorId,
-                    CreatedAt = DateTime.UtcNow
+                if (post.AuthorId != userId) return (false, "YouAreNotAnOwnerOfDraft");
 
-                };
-
-                _db.Posts.Add(newPost);
-
-
+                post.IsDraft = false;
+        
                 await _db.SaveChangesAsync();
 
                 return (true, null);
@@ -51,7 +43,7 @@ namespace Versum.Services
             }
         }
 
-        public async Task<(bool Success, string? Error, int? PostId)> CreateDraftAsync(int authorId, PostDto dto)
+        public async Task<(bool Success, string? Error, int? PostId)> CreateDraftAsync(int authorId, CreateDraftDto dto)
         {
             try
             {
@@ -61,8 +53,6 @@ namespace Versum.Services
                 var draftPost = new Post
                 {
                     Title = dto.Title,
-                    Description = dto.Description ?? string.Empty,
-                    Content = dto.Content ?? string.Empty,
                     AuthorId = authorId,
                     IsDraft = true,
                     CreatedAt = DateTime.UtcNow
@@ -106,3 +96,28 @@ namespace Versum.Services
 
         }
 }
+        public async Task<(bool Success, string? Error)> UpdateDraftAsync(int postId,int userId, PostDto dto)
+        {
+            try
+            {
+                var draft = await _db.Posts.FirstOrDefaultAsync(p => p.Id == postId);
+
+                if (draft == null) return (false, "DraftNotFound");
+                if (draft.AuthorId != userId) return (false, "YouAreNotAnOwnerOfDraft");
+
+                draft.Title = dto.Title;
+                draft.Description = dto.Description;
+                draft.Content = dto.Content;
+
+                await _db.SaveChangesAsync();
+                return (true, null);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"UpdateAuthorBioAsync error: {ex.Message}");
+                return (false, "ServerError");
+            }
+
+        }
+    }
+} 
