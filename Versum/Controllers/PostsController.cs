@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using Versum.Core.Enums;
 using Versum.Dtos;
 using Versum.Hubs;
 using Versum.Context;
@@ -80,39 +81,62 @@ namespace Versum.Controllers
                 postId = postId
             });
         }
-
-        [HttpPost("{postId}/update-draft")]
-        [Authorize]
+        
+         [HttpPost("{postId}/update-draft")]
+         [Authorize]
         public async Task<IActionResult> UpdateDraft(int postId,[FromBody] PostDto dto)
-        {
+          {
 
+              var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+              if (!int.TryParse(userIdClaim, out int userId))
+                      {
+                            return Unauthorized();
+                       }
+
+              var (success, error) = await _postService.UpdateDraftAsync(postId, userId, dto);
+
+              if (!success)
+                   {
+                          if (error == "DraftNotFound") return NotFound(new { message = "Чернетку не знайдено" });
+                          return BadRequest(new { message = error });
+                     }
+
+              return StatusCode(201, new
+                     {
+                       message = "Чернетку збережено",
+ 
+                       });
+                     }
+
+        [HttpGet("get-drafts")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<UserPostsGetDto>>> GetDrafts(
+            [FromQuery] FilterOptions filter,
+            [FromQuery] bool ascending)
+        {
             var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (!int.TryParse(userIdClaim, out int userId))
+            if (!int.TryParse(userIdClaim, out int authorId))
             {
                 return Unauthorized();
             }
+            var drafts = await _postService.GetUserDraftsAsync(authorId, filter, ascending);
+            return Ok(drafts); //Користувачі, які не мають ролі автора або не мають створених чернеток отримують порожній список
+        }
 
-            var (success, error) = await _postService.UpdateDraftAsync(postId, userId, dto);
-
-            if (!success)
+        [HttpGet("get-posts")]
+        public async Task<ActionResult<IEnumerable<UserPostsGetDto>>> GetPosts(
+            [FromQuery] UserPostsRequestDto dto
+            )
+        {
+            var (posts, error) = await _postService.GetUserPostsAsync(dto);
+            if (error != null)
             {
-                if (error == "DraftNotFound") return NotFound(new { message = "Чернетку не знайдено" });
+                if (error == "UserNotFound") return NotFound(new { message = "Користувача не знайдено" });
                 return BadRequest(new { message = error });
             }
 
-            return StatusCode(201, new
-            {
-                message = "Чернетку збережено",
- 
-            });
-        }
+            return Ok(posts);
 
-
-
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Post>>> GetPosts()
-        {
-            return await _context.Posts.OrderByDescending(p => p.CreatedAt).ToListAsync();
         }
    
 

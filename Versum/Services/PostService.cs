@@ -1,6 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 using Versum.Dtos;
 using Versum.Models;
+using Versum.Core.Enums;
+using Versum.Extensions;
 using Versum.Context;
 
 namespace Versum.Services
@@ -67,7 +70,31 @@ namespace Versum.Services
             }
         }
 
-        public async Task<(bool Success, string? Error)> UpdateDraftAsync(int postId, int userId, PostDto dto)
+        public async Task<List<UserPostsGetDto>> GetUserDraftsAsync(int authorId, FilterOptions filter, bool ascending)
+        {
+            return await _db.Posts
+        .AsNoTracking()
+        .Where(p => p.AuthorId == authorId)
+        .OnlyDrafts()
+        .ApplySorting(filter, ascending)
+        .ProjectToPostDto()
+        .ToListAsync();
+        }
+
+        public async Task<(List<UserPostsGetDto>?, string? Error)> GetUserPostsAsync(UserPostsRequestDto dto)
+        {
+            var user = await _db.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Username == dto.Username);
+            if (user == null) return new (null, "UserNotFound");
+            return (await _db.Posts
+        .AsNoTracking()
+        .Where(p => p.AuthorId == user.Id)
+        .OnlyPublished()
+        .ApplySorting(dto.Filter, dto.Ascending)
+        .ProjectToPostDto()
+        .ToListAsync(), null);
+        }
+
+        public async Task<(bool Success, string? Error)> UpdateDraftAsync(int postId,int userId, PostDto dto)
         {
             try
             {
