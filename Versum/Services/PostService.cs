@@ -23,7 +23,7 @@ namespace Versum.Services
         {
             try
             {
-              
+
                 var post = await _db.Posts.FirstOrDefaultAsync(p => p.Id == postId);
 
                 if (post == null) return (false, "PostNotFound");
@@ -31,7 +31,7 @@ namespace Versum.Services
                 if (post.AuthorId != userId) return (false, "YouAreNotAnOwnerOfDraft");
 
                 post.IsDraft = false;
-        
+
                 await _db.SaveChangesAsync();
 
                 return (true, null);
@@ -113,6 +113,30 @@ namespace Versum.Services
             catch (Exception ex)
             {
                 Console.WriteLine($"UpdateAuthorBioAsync error: {ex.Message}");
+                return (false, "ServerError");
+            }
+
+        }
+
+        public async Task<(bool Success, string? Error)> DeletePostAsync(int userId, int postId)
+        {
+
+            var post = await _db.Posts.FirstOrDefaultAsync(p => p.Id == postId && p.AuthorId == userId && !p.IsDeleted);
+
+            if (post == null) return (false, "PostNotFound");
+
+            post.IsDeleted = true;
+
+            try
+            {
+
+                await _db.SaveChangesAsync();
+                return (true, null);
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"DeletePostAsync error: {ex.Message}");
                 return (false, "ServerError");
             }
 

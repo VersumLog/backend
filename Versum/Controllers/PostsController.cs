@@ -138,5 +138,30 @@ namespace Versum.Controllers
             return Ok(posts);
 
         }
+   
+
+        [HttpPost("{postId}/delete-post")]
+        [Authorize]
+        public async Task<IActionResult> DeletePost(int postId)
+        {
+
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(userIdClaim, out int userId))
+            {
+                return Unauthorized();
+            }
+
+            var (success, error) = await _postService.DeletePostAsync(userId,postId);
+            if (!success)
+            {
+                if (error == "PostNotFound")
+                    return NotFound(new { message = "Твір не знайдено" });
+                return BadRequest(new { message = error });
+            }
+
+            return Ok(new { message = "Твір успішно видалено" });
+        }
+
     }
-}
+
+ }

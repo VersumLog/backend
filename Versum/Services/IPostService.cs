@@ -5,6 +5,7 @@ namespace Versum.Services
 {
     public interface IPostService
     {
+        Task<(bool Success, string? Error)> DeletePostAsync(int userId, int postId);
        
         Task<List<UserPostsGetDto>> GetUserDraftsAsync(int claimedUserID, FilterOptions filter, bool ascending);
         Task<(List<UserPostsGetDto>?, string? Error)> GetUserPostsAsync(UserPostsRequestDto dto);
