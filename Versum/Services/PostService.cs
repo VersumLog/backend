@@ -94,8 +94,6 @@ namespace Versum.Services
         .ToListAsync(), null);
         }
 
-        }
-}
         public async Task<(bool Success, string? Error)> UpdateDraftAsync(int postId,int userId, PostDto dto)
         {
             try
