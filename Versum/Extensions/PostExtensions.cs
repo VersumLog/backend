@@ -59,4 +59,18 @@ public static class PostExtensions
             Genres = p.Genres
         });
     }
+    public static UserPostsGetDto PostToUserPostsGetDto(this Post p)
+    {
+        return new UserPostsGetDto
+        {
+            PostId = p.Id,
+            Title = p.Title,
+            Description = p.Description ?? "none",
+            Content = p.Content ?? "none",
+            CreatedAt = p.CreatedAt,
+            Username = p.Author.User.Username,
+            Name = p.Author.User.Profile.Name ?? "none",
+            Genres = p.Genres
+        };
+    }
 }

@@ -140,9 +140,14 @@ namespace Versum.Controllers
         }
 
         [HttpGet("{postId}")]
+        [Authorize]
         public async Task<IActionResult> GetPostById(int postId)
         {
-            var (post, error) = await _postService.GetPostAsync(postId);
+            //not required to be authorized, but allows you to see your drafts
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            int.TryParse(userIdClaim, out int userId);
+
+            var (post, error) = await _postService.GetPostAsync(postId, userId);
 
             if (error != null)
             {
