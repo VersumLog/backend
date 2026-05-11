@@ -86,7 +86,6 @@ namespace Versum.Controllers
          [Authorize]
         public async Task<IActionResult> UpdateDraft(int postId,[FromBody] PostDto dto)
           {
-
               var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
               if (!int.TryParse(userIdClaim, out int userId))
                       {
