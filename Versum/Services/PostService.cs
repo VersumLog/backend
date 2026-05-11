@@ -33,14 +33,11 @@ namespace Versum.Services
                 if (!post.IsDraft) return (false, "AlreadyPublished");
 
              
-                if (string.IsNullOrWhiteSpace(post.Title))
-                    return (false, "TitleRequired");
+                if (string.IsNullOrWhiteSpace(post.Title)) return (false, "TitleRequired");
 
-                if (string.IsNullOrWhiteSpace(post.Description))
-                    return (false, "DescriptionRequired");
+                if (string.IsNullOrWhiteSpace(post.Description)) return (false, "DescriptionRequired");
 
-                if (string.IsNullOrWhiteSpace(post.Content))
-                    return (false, "ContentRequired");
+                if (string.IsNullOrWhiteSpace(post.Content)) return (false, "ContentRequired");
 
 
                 post.IsDraft = false;
