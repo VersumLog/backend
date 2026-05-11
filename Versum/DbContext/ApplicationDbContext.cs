@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Versum.Models;
 
-namespace Versum
+namespace Versum.Context
 {
     public class ApplicationDbContext : DbContext
     {
@@ -35,9 +35,9 @@ namespace Versum
             .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Post>()
-            .HasOne(p => p.User)
+            .HasOne(p => p.Author)
             .WithMany(u => u.Posts)
-            .HasForeignKey(p => p.UserId);
+            .HasForeignKey(p => p.AuthorId);
 
             modelBuilder.Entity<Genre>()
             .HasMany(p => p.Posts)

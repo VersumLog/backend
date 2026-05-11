@@ -3,6 +3,7 @@ using System.Security.Cryptography;
 using System.Text;
 using Versum.Dtos;
 using Versum.Models;
+using Versum.Context;
 
 namespace Versum.Services
 {
@@ -62,6 +63,10 @@ namespace Versum.Services
 
         public async Task<UserProfileResponseDto?> GetProfileByUsernameAsync(string username, int? claimedUserID)
         {
+            if (string.IsNullOrWhiteSpace(username))
+            {
+                throw new ArgumentException("Username cannot be null or empty.", nameof(username));
+            }
             return await _db.Users
                 .Where(u => u.Username == username)
                 .Select(u => new UserProfileResponseDto
@@ -70,6 +75,7 @@ namespace Versum.Services
                     Name = u.Profile.Name ?? "none",
                     Bio = u.Profile.Bio ?? "none",
                     CreatedAt = u.CreatedAt,
+                    IsAuthor = (u.AuthorProfile != null),
                     IsOwner = u.Id == claimedUserID
                 })
                 .FirstOrDefaultAsync();
