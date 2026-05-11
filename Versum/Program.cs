@@ -24,8 +24,10 @@ builder.Services.AddDbContext<Versum.Context.ApplicationDbContext>(options =>
 var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>()
                      ?? new[] { "https://versum.social" };
 
-builder.Services.AddCors(options => {
-    options.AddPolicy("NuxtPolicy", policy => {
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("NuxtPolicy", policy =>
+    {
         policy.WithOrigins(allowedOrigins)
               .AllowAnyHeader()
               .AllowAnyMethod()

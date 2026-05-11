@@ -12,11 +12,11 @@ namespace Versum.Dtos
 
         [Required(ErrorMessage = "Введіть своє ім'я")]
         [MaxLength(30, ErrorMessage = "Поле імені не може містити більше 30-ти символів")]
-        public string Name {  get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Введіть свою біографію")]
         [MaxLength(200, ErrorMessage = "Поле біографії не може містити більше 200-ти символів")]
-        public string Bio {  get; set; } = string.Empty;
+        public string Bio { get; set; } = string.Empty;
 
 
     }

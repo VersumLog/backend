@@ -212,7 +212,7 @@ namespace VersumTestProject.ServicesTest
         {
             // Arrange
             var user = new User { Id = 1, Username = TestUsername, Email = TestEmail };
-            var profile = new UserProfile { Id = 1, UserId = 1, Name = TestName , Bio = "Old Bio" };
+            var profile = new UserProfile { Id = 1, UserId = 1, Name = TestName, Bio = "Old Bio" };
 
             _context.Users.Add(user);
             _context.Profiles.Add(profile);
@@ -263,7 +263,7 @@ namespace VersumTestProject.ServicesTest
 
             var user = new User { Id = 1, Username = TestUsername, Email = TestEmail };
             var profile = new UserProfile { Id = 1, UserId = 1, Name = TestName, Bio = "Old Bio" };
-           
+
             _context.Users.Add(user);
             _context.Profiles.Add(profile);
             await _context.SaveChangesAsync();
@@ -283,5 +283,5 @@ namespace VersumTestProject.ServicesTest
         }
 
     }
- }
+}
 
