@@ -132,49 +132,33 @@ namespace Versum.Services
                 .FirstOrDefaultAsync();
         }
 
-            public async Task<(bool success, string? error)> ToggleFollowAsync(int followerId, int followingId)
+        public async Task<(bool success, string? error)> ToggleFollowAsync(int followerId, int followingId)
         {
             if (followerId == followingId)
             {
                 return (false, "Ви не можете підписатися на самого себе.");
             }
-
-           
-            var existingFollow = await _db.Follows
-                .FirstOrDefaultAsync(f => f.FollowerId == followerId && f.FollowingId == followingId);
-
-            
+          
             var currentUser = await _db.Users.FindAsync(followerId);
+            var targetUser = await _db.Users.FindAsync(followingId);
 
-           
-            var targetUser = await _db.Users.AnyAsync(u => u.Id == followingId);
-
-            if (currentUser == null || !targetUser)
+            if (currentUser == null || targetUser == null)
             {
                 return (false, "Користувача не знайдено.");
             }
 
+            var existingFollow = await _db.Follows
+                .FirstOrDefaultAsync(f => f.FollowerId == followerId && f.FollowingId == followingId);
+
             if (existingFollow != null)
             {
-                
                 _db.Follows.Remove(existingFollow);
-
-                if (currentUser.FollowingCount > 0)
-                {
-                    currentUser.FollowingCount--; 
-                }
+                if (currentUser.FollowingCount > 0) currentUser.FollowingCount--;
             }
             else
             {
-                
-                var newFollow = new Versum.Models.Follow
-                {
-                    FollowerId = followerId,
-                    FollowingId = followingId
-                };
-                _db.Follows.Add(newFollow);
-
-                currentUser.FollowingCount++; 
+                _db.Follows.Add(new Follow { FollowerId = followerId, FollowingId = followingId });
+                currentUser.FollowingCount++;
             }
 
             await _db.SaveChangesAsync();

@@ -19,15 +19,37 @@ namespace Versum
         public DbSet<Follow> Follows { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
+
         {
+            modelBuilder.Entity<User>().HasIndex(u => u.Username).IsUnique();
+            modelBuilder.Entity<User>().HasIndex(u => u.Email).IsUnique();
+
+            modelBuilder.Entity<User>()
+            .HasIndex(u => new { u.Email, u.PasswordResetToken });
+            modelBuilder.Entity<User>().HasIndex(u => u.EmailConfirmationTokenHash).IsUnique();
+
+            modelBuilder.Entity<User>()
+            .HasOne(u => u.Profile)
+            .WithOne(p => p.User)
+            .HasForeignKey<UserProfile>(p => p.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Post>()
+            .HasOne(p => p.User)
+            .WithMany(u => u.Posts)
+            .HasForeignKey(p => p.UserId);
+
+            modelBuilder.Entity<Genre>()
+            .HasMany(p => p.Posts)
+            .WithMany(g => g.Genres);
             base.OnModelCreating(modelBuilder);
 
             modelBuilder.Entity<Follow>(entity =>
             {
-               
+
                 entity.HasKey(f => f.Id);
 
-                
+
                 entity.HasOne(f => f.Follower)
                     .WithMany()
                     .HasForeignKey(f => f.FollowerId);
