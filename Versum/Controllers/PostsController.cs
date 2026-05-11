@@ -138,7 +138,20 @@ namespace Versum.Controllers
             return Ok(posts);
 
         }
-   
+
+        [HttpGet("{postId}")]
+        public async Task<IActionResult> GetPostById(int postId)
+        {
+            var (post, error) = await _postService.GetPostAsync(postId);
+
+            if (error != null)
+            {
+                return NotFound(new { message = error });
+            }
+
+            return Ok(post);
+        }
+
 
         [HttpPost("{postId}/delete-post")]
         [Authorize]
