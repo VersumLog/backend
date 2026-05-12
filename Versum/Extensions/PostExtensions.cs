@@ -68,9 +68,9 @@ public static class PostExtensions
             Description = p.Description ?? "none",
             Content = p.Content ?? "none",
             CreatedAt = p.CreatedAt,
-            Username = p.Author.User.Username,
-            Name = p.Author.User.Profile.Name ?? "none",
-            Genres = p.Genres.Select(g => g.Name).ToList()
+            Username = p.Author?.User?.Username ?? "Unknown",
+            Name = p.Author?.User?.Profile?.Name ?? "none",
+            Genres = p.Genres?.Select(g => g.Name).ToList() ?? new List<string>()
         };
     }
 }

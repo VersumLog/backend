@@ -98,6 +98,10 @@ namespace Versum.Services
         {
             var post = await _db.Posts
         .AsNoTracking()
+        .Include(p => p.Author)
+            .ThenInclude(a => a.User)
+                .ThenInclude(u => u.Profile)
+        .Include(p => p.Genres)
         .Where(p => p.Id == postId)
         .FirstOrDefaultAsync();
 
