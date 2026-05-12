@@ -13,7 +13,7 @@ namespace Versum.Dtos
         public int PostId { get; set; }
         public string Username { get; set; } = string.Empty;
         public string Name { get; set; } = string.Empty;
-        public ICollection<Genre> Genres { get; set; } = new List<Genre>();
+        public ICollection<string> Genres { get; set; } = new List<string>();
 
     }
 }

@@ -17,8 +17,6 @@ namespace Versum.Dtos
         [MaxLength(500000, ErrorMessage = "Максимум 500000 символів")]
         [MinLength(10, ErrorMessage = "Мінімум 10 символів")]
         public string Content { get; set; } = "";
-
-
-
+        public List<string> Genres { get; set; } = [];
     }
 }

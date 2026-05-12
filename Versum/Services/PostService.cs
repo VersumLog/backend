@@ -84,7 +84,7 @@ namespace Versum.Services
         public async Task<(List<UserPostsGetDto>?, string? Error)> GetUserPostsAsync(UserPostsRequestDto dto)
         {
             var user = await _db.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Username == dto.Username);
-            if (user == null) return new (null, "UserNotFound");
+            if (user == null) return new(null, "UserNotFound");
             return (await _db.Posts
         .AsNoTracking()
         .Where(p => p.AuthorId == user.Id)
@@ -113,7 +113,9 @@ namespace Versum.Services
         {
             try
             {
-                var draft = await _db.Posts.FirstOrDefaultAsync(p => p.Id == postId);
+                var draft = await _db.Posts
+                .Include(p => p.Genres)
+                .FirstOrDefaultAsync(p => p.Id == postId);
 
                 if (draft == null) return (false, "DraftNotFound");
                 if (draft.AuthorId != userId) return (false, "YouAreNotAnOwnerOfDraft");
@@ -121,6 +123,7 @@ namespace Versum.Services
                 draft.Title = dto.Title;
                 draft.Description = dto.Description;
                 draft.Content = dto.Content;
+                draft.Genres = _db.Genres.Where(g => dto.Genres.Contains(g.Name)).ToList();
 
                 await _db.SaveChangesAsync();
                 return (true, null);
@@ -154,7 +157,10 @@ namespace Versum.Services
                 Console.WriteLine($"DeletePostAsync error: {ex.Message}");
                 return (false, "ServerError");
             }
-
+        }
+        public async Task<List<string>> GetGenresAsync()
+        {
+            return await _db.Genres.Select(g => g.Name).ToListAsync();
         }
     }
-} 
+}
