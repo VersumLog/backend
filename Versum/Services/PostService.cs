@@ -94,7 +94,22 @@ namespace Versum.Services
         .ToListAsync(), null);
         }
 
-        public async Task<(bool Success, string? Error)> UpdateDraftAsync(int postId, int userId, PostDto dto)
+        public async Task<(UserPostsGetDto?, string? Error)> GetPostAsync(int postId, int? userID)
+        {
+            var post = await _db.Posts
+        .AsNoTracking()
+        .Where(p => p.Id == postId)
+        .FirstOrDefaultAsync();
+
+            if (post == null || (post.IsDraft && post.AuthorId != userID))
+            {
+                return (null, "Твір не знайдено або він ще не опублікований");
+            }
+
+            return (post.PostToUserPostsGetDto(), null);
+        }
+
+        public async Task<(bool Success, string? Error)> UpdateDraftAsync(int postId,int userId, PostDto dto)
         {
             try
             {
