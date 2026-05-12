@@ -81,31 +81,32 @@ namespace Versum.Controllers
                 postId = postId
             });
         }
-        
-         [HttpPost("{postId}/update-draft")]
-         [Authorize]
-        public async Task<IActionResult> UpdateDraft(int postId,[FromBody] PostDto dto)
-          {
-              var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-              if (!int.TryParse(userIdClaim, out int userId))
-                      {
-                            return Unauthorized();
-                       }
 
-              var (success, error) = await _postService.UpdateDraftAsync(postId, userId, dto);
+        [HttpPost("{postId}/update-draft")]
+        [Authorize]
+        public async Task<IActionResult> UpdateDraft(int postId, [FromBody] PostDto dto)
+        {
 
-              if (!success)
-                   {
-                          if (error == "DraftNotFound") return NotFound(new { message = "Чернетку не знайдено" });
-                          return BadRequest(new { message = error });
-                     }
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(userIdClaim, out int userId))
+            {
+                return Unauthorized();
+            }
 
-              return StatusCode(201, new
-                     {
-                       message = "Чернетку збережено",
- 
-                       });
-                     }
+            var (success, error) = await _postService.UpdateDraftAsync(postId, userId, dto);
+
+            if (!success)
+            {
+                if (error == "DraftNotFound") return NotFound(new { message = "Чернетку не знайдено" });
+                return BadRequest(new { message = error });
+            }
+
+            return StatusCode(201, new
+            {
+                message = "Чернетку збережено",
+
+            });
+        }
 
         [HttpGet("get-drafts")]
         [Authorize]
@@ -137,7 +138,6 @@ namespace Versum.Controllers
             return Ok(posts);
 
         }
-   
 
         [HttpPost("{postId}/delete-post")]
         [Authorize]
@@ -161,6 +161,12 @@ namespace Versum.Controllers
             return Ok(new { message = "Твір успішно видалено" });
         }
 
+        [HttpGet("get-genres")]
+        public async Task<IActionResult> GetGenres()
+        {
+            var genres = await _postService.GetGenresAsync();
+            return Ok(genres);
+        }
     }
 
  }

@@ -5,48 +5,48 @@ using Versum.Context;
 
 namespace Versum.Services
 {
-  
-       
-        public class BCAuthorService : IBCAuthorService
+
+
+    public class BCAuthorService : IBCAuthorService
+    {
+        private readonly ApplicationDbContext _db;
+
+        public BCAuthorService(ApplicationDbContext db)
         {
-            private readonly ApplicationDbContext _db;
+            _db = db;
+        }
 
-            public BCAuthorService(ApplicationDbContext db)
+
+
+        public async Task<(bool Success, string? Error)> BecomeAuthorAsync(int userId, BecomeAuthorDto dto)
+        {
+            try
             {
-                _db = db;
-            }
+                var user = await _db.Users
+                    .Include(u => u.AuthorProfile)
+                    .FirstOrDefaultAsync(u => u.Id == userId);
 
+                if (user == null) return (false, "NotFound");
+                if (user.AuthorProfile != null) return (false, "Ви вже є автором.");
 
-
-            public async Task<(bool Success, string? Error)> BecomeAuthorAsync(int userId, BecomeAuthorDto dto)
-            {
-                try
+                user.AuthorProfile = new Author
                 {
-                    var user = await _db.Users
-                        .Include(u => u.AuthorProfile)
-                        .FirstOrDefaultAsync(u => u.Id == userId);
+                    AuthorId = user.Id,
+                    AuthorBio = dto.AuthorBio.Trim()
+                };
 
-                    if (user == null) return (false, "NotFound");
-                    if (user.AuthorProfile != null) return (false, "Ви вже є автором.");
-
-                    user.AuthorProfile = new Author
-                    {
-                        AuthorId = user.Id,
-                        AuthorBio = dto.AuthorBio.Trim()
-                    };
-
-                    await _db.SaveChangesAsync();
-                    return (true, null);
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"BecomeAuthorAsync error: {ex.Message}");
-                    return (false, "ServerError");
-                }
+                await _db.SaveChangesAsync();
+                return (true, null);
             }
-
-            public async Task<(bool Success, string? Bio, string? Error)> GetAuthorBioAsync(string username)
+            catch (Exception ex)
             {
+                Console.WriteLine($"BecomeAuthorAsync error: {ex.Message}");
+                return (false, "ServerError");
+            }
+        }
+
+        public async Task<(bool Success, string? Bio, string? Error)> GetAuthorBioAsync(string username)
+        {
             try
             {
                 var author = await _db.Authors
@@ -65,27 +65,27 @@ namespace Versum.Services
 
 
         }
-            public async Task<(bool Success, string? Error)> UpdateAuthorBioAsync(int userId, BecomeAuthorDto dto)
+        public async Task<(bool Success, string? Error)> UpdateAuthorBioAsync(int userId, BecomeAuthorDto dto)
+        {
+            try
             {
-                try
-                {
-                    var author = await _db.Authors
-                        .FirstOrDefaultAsync(a => a.AuthorId == userId);
+                var author = await _db.Authors
+                    .FirstOrDefaultAsync(a => a.AuthorId == userId);
 
-                    if (author == null) return (false, "NotFound");
+                if (author == null) return (false, "NotFound");
 
-                    author.AuthorBio = dto.AuthorBio.Trim();
+                author.AuthorBio = dto.AuthorBio.Trim();
 
-                    await _db.SaveChangesAsync();
-                    return (true, null);
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"UpdateAuthorBioAsync error: {ex.Message}");
-                    return (false, "ServerError");
-                }
+                await _db.SaveChangesAsync();
+                return (true, null);
             }
-
-
+            catch (Exception ex)
+            {
+                Console.WriteLine($"UpdateAuthorBioAsync error: {ex.Message}");
+                return (false, "ServerError");
+            }
         }
+
+
     }
+}
