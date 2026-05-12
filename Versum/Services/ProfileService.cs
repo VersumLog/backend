@@ -22,7 +22,7 @@ namespace Versum.Services
             .FirstOrDefaultAsync(u => u.Id == UserId);
             if (user == null)
             {
-                return (false,"Чому нас вважають за одну людину?");
+                return (false, "Чому нас вважають за одну людину?");
             }
 
             bool usernameExists = await _db.Users.AnyAsync(u => u.Username == dto.Username);

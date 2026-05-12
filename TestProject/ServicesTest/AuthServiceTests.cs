@@ -11,7 +11,7 @@ using Versum.Services;
 
 namespace VersumTestProject.ServicesTest
 {
-    public class AuthServiceTests: IDisposable
+    public class AuthServiceTests : IDisposable
     {
 
         private readonly ApplicationDbContext _context;
@@ -60,7 +60,7 @@ namespace VersumTestProject.ServicesTest
                 "Привіт, {Username}! Посилання: {confirmLink}"
             );
         }
-       
+
         private string ComputeSha256Hash(string rawData)
         {
             using (var sha256 = SHA256.Create())
@@ -112,7 +112,7 @@ namespace VersumTestProject.ServicesTest
 
             // checks email sending with use of Email Mock
             // У тестах ви просто робите так:
-           
+
             _emailServiceMock.Verify(
                 x => x.SendEmailAsync(
                     TestEmail,

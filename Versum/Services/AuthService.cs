@@ -9,12 +9,13 @@ using Versum.Context;
 
 namespace Versum.Services
 {
-    public class AuthService : IAuthService {
+    public class AuthService : IAuthService
+    {
 
         private readonly ApplicationDbContext _db;
         private readonly IEmailService _emailService;
         private readonly IConfiguration _configuration;
-        public AuthService(ApplicationDbContext db,IEmailService emailService,IConfiguration configuration)
+        public AuthService(ApplicationDbContext db, IEmailService emailService, IConfiguration configuration)
         {
             _db = db;
             _emailService = emailService;
@@ -45,10 +46,10 @@ namespace Versum.Services
                 var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(registerToken));
                 RegisterTokenHash = Convert.ToBase64String(bytes);
             }
-          
+
             var confLimit = DateTime.UtcNow.AddHours(24); // email confirmation could be valid only during 24 h
-            
-         
+
+
 
             var user = new User
             {
@@ -56,7 +57,7 @@ namespace Versum.Services
 
                 PasswordHash = passwordHash,
 
-                 Email = dto.Email,
+                Email = dto.Email,
 
                 EmailConfirmationTokenHash = RegisterTokenHash,
                 EmailTokenExpiryDate = confLimit
@@ -79,7 +80,7 @@ namespace Versum.Services
 
 
             return (true, null, null);
-          
+
 
         }
 
@@ -92,7 +93,7 @@ namespace Versum.Services
                 incomingHash = Convert.ToBase64String(bytes);
             }
 
-           
+
             var user = await _db.Users.FirstOrDefaultAsync(u =>
                 u.EmailConfirmationTokenHash == incomingHash &&
                 u.EmailTokenExpiryDate > DateTime.UtcNow
@@ -111,22 +112,22 @@ namespace Versum.Services
         }
         public async Task<(bool success, string tokenOrError, string userGmail, string username)> LoginAsync(LoginDto dto)
         {
-           
+
             var user = await _db.Users.FirstOrDefaultAsync(u =>
                 u.Email == dto.UsernameOrGmail || u.Username == dto.UsernameOrGmail);
 
             if (user == null)
             {
-                
+
                 return (false, "Невірний логін або пароль", string.Empty, string.Empty);
             }
 
-            
+
             bool isPasswordValid = BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash);
 
             if (!isPasswordValid)
             {
-                
+
                 return (false, "Невірний логін або пароль", string.Empty, string.Empty);
             }
 
@@ -209,11 +210,11 @@ namespace Versum.Services
                 await _db.SaveChangesAsync();
                 return (true, null);
             }
-            catch(DbUpdateException ex)
+            catch (DbUpdateException ex)
             {
                 return (false, "Сталася помилка при зверненні до бази даних.");
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return (false, "Сталася непередбачувана помилка на сервері.");
             }
@@ -233,7 +234,7 @@ namespace Versum.Services
             {
                 return (false, "Термін дії токена вичерпано. Запитуйте відновлення знову.");
             }
-                return (true, null);
+            return (true, null);
 
         }
 

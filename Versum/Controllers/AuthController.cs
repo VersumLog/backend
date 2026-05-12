@@ -20,10 +20,10 @@ namespace Versum.Controllers
             _emailService = emailService;
         }
 
-   
+
 
         [HttpPost("register")]
-       
+
         public async Task<IActionResult> Register([FromBody] RegisterDto dto)// JSON converts to RegisterDtos object
         {
             if (!ModelState.IsValid)
@@ -35,7 +35,7 @@ namespace Versum.Controllers
                 return Conflict(new { field, message = error }); //checks if data for transfer does not cause conflicts(error 409)
 
             return Ok(new { message = "Реєстрація успішна! Перевірте пошту для підтвердження." });
-           
+
         }
 
 
@@ -108,7 +108,7 @@ namespace Versum.Controllers
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);// checks validation attributes from LoginDto -> Smth wrong -> returns error 400
-            
+
             var (success, error) = await _authService.ResetPasswordTokenCheckAsync(dto);
 
             if (!success)
