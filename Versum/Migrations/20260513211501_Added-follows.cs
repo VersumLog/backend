@@ -6,17 +6,23 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Versum.Migrations
 {
     /// <inheritdoc />
-    public partial class AddFollowsSystem : Migration
+    public partial class Addedfollows : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AddColumn<int>(
-                name: "FollowerCount",
+                name: "FollowingCount",
                 table: "Users",
                 type: "integer",
                 nullable: false,
                 defaultValue: 0);
+
+            migrationBuilder.AddColumn<int>(
+                name: "UserId",
+                table: "Posts",
+                type: "integer",
+                nullable: true);
 
             migrationBuilder.CreateTable(
                 name: "Follows",
@@ -36,19 +42,24 @@ namespace Versum.Migrations
                         column: x => x.FollowerId,
                         principalTable: "Users",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Follows_Users_FollowingId",
                         column: x => x.FollowingId,
                         principalTable: "Users",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Follows_Users_UserId",
                         column: x => x.UserId,
                         principalTable: "Users",
                         principalColumn: "Id");
                 });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Posts_UserId",
+                table: "Posts",
+                column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Follows_FollowerId",
@@ -64,17 +75,36 @@ namespace Versum.Migrations
                 name: "IX_Follows_UserId",
                 table: "Follows",
                 column: "UserId");
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_Posts_Users_UserId",
+                table: "Posts",
+                column: "UserId",
+                principalTable: "Users",
+                principalColumn: "Id");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropForeignKey(
+                name: "FK_Posts_Users_UserId",
+                table: "Posts");
+
             migrationBuilder.DropTable(
                 name: "Follows");
 
+            migrationBuilder.DropIndex(
+                name: "IX_Posts_UserId",
+                table: "Posts");
+
             migrationBuilder.DropColumn(
-                name: "FollowerCount",
+                name: "FollowingCount",
                 table: "Users");
+
+            migrationBuilder.DropColumn(
+                name: "UserId",
+                table: "Posts");
         }
     }
 }

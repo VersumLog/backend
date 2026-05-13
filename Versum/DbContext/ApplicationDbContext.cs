@@ -42,7 +42,6 @@ namespace Versum.Context
             modelBuilder.Entity<Genre>()
             .HasMany(p => p.Posts)
             .WithMany(g => g.Genres);
-            base.OnModelCreating(modelBuilder);
 
             modelBuilder.Entity<Follow>(entity =>
             {

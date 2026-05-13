@@ -5,7 +5,6 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using Versum;
 using Versum.Context;
 
 #nullable disable
@@ -13,8 +12,8 @@ using Versum.Context;
 namespace Versum.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260511091049_RestoreStructureAndFixFollows")]
-    partial class RestoreStructureAndFixFollows
+    [Migration("20260513211501_Added-follows")]
+    partial class Addedfollows
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -109,6 +108,9 @@ namespace Versum.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("AuthorId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Content")
                         .IsRequired()
                         .HasMaxLength(500000)
@@ -122,15 +124,23 @@ namespace Versum.Migrations
                         .HasMaxLength(600)
                         .HasColumnType("character varying(600)");
 
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsDraft")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
-                    b.Property<int>("UserId")
+                    b.Property<int?>("UserId")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("AuthorId");
 
                     b.HasIndex("UserId");
 
@@ -278,13 +288,17 @@ namespace Versum.Migrations
 
             modelBuilder.Entity("Versum.Post", b =>
                 {
-                    b.HasOne("Versum.User", "User")
+                    b.HasOne("Versum.Models.Author", "Author")
                         .WithMany("Posts")
-                        .HasForeignKey("UserId")
+                        .HasForeignKey("AuthorId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("User");
+                    b.HasOne("Versum.User", null)
+                        .WithMany("Posts")
+                        .HasForeignKey("UserId");
+
+                    b.Navigation("Author");
                 });
 
             modelBuilder.Entity("Versum.UserProfile", b =>
@@ -296,6 +310,11 @@ namespace Versum.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Versum.Models.Author", b =>
+                {
+                    b.Navigation("Posts");
                 });
 
             modelBuilder.Entity("Versum.User", b =>

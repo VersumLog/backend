@@ -132,9 +132,14 @@ namespace Versum.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
+                    b.Property<int?>("UserId")
+                        .HasColumnType("integer");
+
                     b.HasKey("Id");
 
                     b.HasIndex("AuthorId");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("Posts");
                 });
@@ -286,6 +291,10 @@ namespace Versum.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Versum.User", null)
+                        .WithMany("Posts")
+                        .HasForeignKey("UserId");
+
                     b.Navigation("Author");
                 });
 
@@ -308,6 +317,8 @@ namespace Versum.Migrations
             modelBuilder.Entity("Versum.User", b =>
                 {
                     b.Navigation("AuthorProfile");
+
+                    b.Navigation("Followers");
 
                     b.Navigation("Posts");
 
