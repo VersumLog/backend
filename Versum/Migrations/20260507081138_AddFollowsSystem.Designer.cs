@@ -2,18 +2,21 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using Versum.Context;
+using Versum;
 
 #nullable disable
 
 namespace Versum.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260507081138_AddFollowsSystem")]
+    partial class AddFollowsSystem
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -105,9 +108,6 @@ namespace Versum.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("AuthorId")
-                        .HasColumnType("integer");
-
                     b.Property<string>("Content")
                         .IsRequired()
                         .HasMaxLength(500000)
@@ -121,20 +121,17 @@ namespace Versum.Migrations
                         .HasMaxLength(600)
                         .HasColumnType("character varying(600)");
 
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("IsDraft")
-                        .HasColumnType("boolean");
-
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
                     b.HasKey("Id");
 
-                    b.HasIndex("AuthorId");
+                    b.HasIndex("UserId");
 
                     b.ToTable("Posts");
                 });
@@ -161,7 +158,7 @@ namespace Versum.Migrations
                     b.Property<DateTime?>("EmailTokenExpiryDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("FollowingCount")
+                    b.Property<int>("FollowerCount")
                         .HasColumnType("integer");
 
                     b.Property<bool>("IsDeleted")
@@ -260,13 +257,13 @@ namespace Versum.Migrations
                     b.HasOne("Versum.User", "Follower")
                         .WithMany()
                         .HasForeignKey("FollowerId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Versum.User", "Following")
                         .WithMany()
                         .HasForeignKey("FollowingId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Versum.User", null)
@@ -280,13 +277,13 @@ namespace Versum.Migrations
 
             modelBuilder.Entity("Versum.Post", b =>
                 {
-                    b.HasOne("Versum.Models.Author", "Author")
+                    b.HasOne("Versum.User", "User")
                         .WithMany("Posts")
-                        .HasForeignKey("AuthorId")
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Author");
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Versum.UserProfile", b =>
@@ -300,14 +297,11 @@ namespace Versum.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Versum.Models.Author", b =>
-                {
-                    b.Navigation("Posts");
-                });
-
             modelBuilder.Entity("Versum.User", b =>
                 {
                     b.Navigation("AuthorProfile");
+
+                    b.Navigation("Followers");
 
                     b.Navigation("Posts");
 

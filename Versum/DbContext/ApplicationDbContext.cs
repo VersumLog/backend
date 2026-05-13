@@ -16,6 +16,7 @@ namespace Versum.Context
         public DbSet<Author> Authors { get; set; }
         public DbSet<Genre> Genres { get; set; }
 
+        public DbSet<Follow> Follows { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
 
@@ -41,6 +42,22 @@ namespace Versum.Context
             modelBuilder.Entity<Genre>()
             .HasMany(p => p.Posts)
             .WithMany(g => g.Genres);
+            base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<Follow>(entity =>
+            {
+
+                entity.HasKey(f => f.Id);
+
+
+                entity.HasOne(f => f.Follower)
+                    .WithMany()
+                    .HasForeignKey(f => f.FollowerId);
+
+                entity.HasOne(f => f.Following)
+                    .WithMany()
+                    .HasForeignKey(f => f.FollowingId);
+            });
         }
     }
 }

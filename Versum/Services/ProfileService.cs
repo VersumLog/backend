@@ -2,6 +2,7 @@
 using System.Security.Cryptography;
 using System.Text;
 using Versum.Dtos;
+using Versum.Models;
 using Versum.Context;
 
 namespace Versum.Services
@@ -124,6 +125,53 @@ namespace Versum.Services
                 Console.WriteLine($"СЕРВЕРНА_ПОМИЛКА: {ex.Message}");
                 return (false, "Сталася непередбачувана помилка на сервері.");
             }
+
+
+
         }
+
+        public async Task<int?> GetUserIdByUsernameAsync(string username)
+        {
+            return await _db.Users
+                .Where(u => u.Username.ToLower() == username.ToLower())
+                .Select(u => (int?)u.Id)
+                .FirstOrDefaultAsync();
+        }
+
+        public async Task<(bool success, string? error)> ToggleFollowAsync(int followerId, int followingId)
+        {
+            if (followerId == followingId)
+            {
+                return (false, "Ви не можете підписатися на самого себе.");
+            }
+          
+            var currentUser = await _db.Users.FindAsync(followerId);
+            var targetUser = await _db.Users.FindAsync(followingId);
+
+            if (currentUser == null || targetUser == null)
+            {
+                return (false, "Користувача не знайдено.");
+            }
+
+            var existingFollow = await _db.Follows
+                .FirstOrDefaultAsync(f => f.FollowerId == followerId && f.FollowingId == followingId);
+
+            if (existingFollow != null)
+            {
+                _db.Follows.Remove(existingFollow);
+                if (currentUser.FollowingCount > 0) currentUser.FollowingCount--;
+            }
+            else
+            {
+                _db.Follows.Add(new Follow { FollowerId = followerId, FollowingId = followingId });
+                currentUser.FollowingCount++;
+            }
+
+            await _db.SaveChangesAsync();
+            return (true, null);
+        }
+
     }
+
 }
+
