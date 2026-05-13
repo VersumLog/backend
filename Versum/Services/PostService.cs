@@ -30,6 +30,16 @@ namespace Versum.Services
 
                 if (post.AuthorId != userId) return (false, "YouAreNotAnOwnerOfDraft");
 
+                if (!post.IsDraft) return (false, "AlreadyPublished");
+
+             
+                if (string.IsNullOrWhiteSpace(post.Title)) return (false, "TitleRequired");
+
+                if (string.IsNullOrWhiteSpace(post.Description)) return (false, "DescriptionRequired");
+
+                if (string.IsNullOrWhiteSpace(post.Content)) return (false, "ContentRequired");
+
+
                 post.IsDraft = false;
 
                 await _db.SaveChangesAsync();
@@ -38,7 +48,7 @@ namespace Versum.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"PublishPostAsync error: {ex.Message}");
+                Console.WriteLine($"PublishDraftAsync error: {ex.Message}");
                 return (false, "ServerError");
             }
         }
@@ -65,7 +75,7 @@ namespace Versum.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"SaveDraftAsync error: {ex.Message}");
+                Console.WriteLine($"CreateDraftAsync error: {ex.Message}");
                 return (false, "ServerError", null);
             }
         }
@@ -122,6 +132,7 @@ namespace Versum.Services
                 .FirstOrDefaultAsync(p => p.Id == postId);
 
                 if (draft == null) return (false, "DraftNotFound");
+                if (draft.IsDraft == false) return (false, "You can't edit published writings");
                 if (draft.AuthorId != userId) return (false, "YouAreNotAnOwnerOfDraft");
 
                 draft.Title = dto.Title;
@@ -134,7 +145,7 @@ namespace Versum.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"UpdateAuthorBioAsync error: {ex.Message}");
+                Console.WriteLine($"UpdateDraftAsync error: {ex.Message}");
                 return (false, "ServerError");
             }
 
