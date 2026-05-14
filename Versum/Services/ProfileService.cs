@@ -67,6 +67,16 @@ namespace Versum.Services
             {
                 throw new ArgumentException("Username cannot be null or empty.", nameof(username));
             }
+
+            var user = await _db.Users
+            .Include(u => u.Profile)
+            .Include(u => u.AuthorProfile)
+            .FirstOrDefaultAsync(u => u.Username == username);
+
+            bool isCurrentGuest = claimedUserID == null;
+
+            if (user == null) return null;
+
             return await _db.Users
                 .Where(u => u.Username == username)
                 .Select(u => new UserProfileResponseDto
@@ -76,7 +86,11 @@ namespace Versum.Services
                     Bio = u.Profile.Bio ?? "none",
                     CreatedAt = u.CreatedAt,
                     IsAuthor = (u.AuthorProfile != null),
-                    IsOwner = u.Id == claimedUserID
+                    IsOwner = u.Id == claimedUserID,
+                    WorksCount = u.AuthorProfile.Posts.Count(p => !p.IsDeleted && !p.IsDraft),
+                    FollowingCount = _db.Follows.Count(f => f.FollowerId == u.Id),
+                    FollowersCount = _db.Follows.Count(f => f.FollowingId == u.Id),
+                    IsFollowing = !isCurrentGuest && _db.Follows.Any(f => f.FollowerId == claimedUserID && f.FollowingId == u.Id)
                 })
                 .FirstOrDefaultAsync();
         }
@@ -140,18 +154,7 @@ namespace Versum.Services
 
         public async Task<(bool success, string? error)> ToggleFollowAsync(int followerId, int followingId)
         {
-            if (followerId == followingId)
-            {
-                return (false, "Ви не можете підписатися на самого себе.");
-            }
-          
-            var currentUser = await _db.Users.FindAsync(followerId);
-            var targetUser = await _db.Users.FindAsync(followingId);
-
-            if (currentUser == null || targetUser == null)
-            {
-                return (false, "Користувача не знайдено.");
-            }
+            if (followerId == followingId) return (false, "Ви не можете підписатися на себе.");
 
             var existingFollow = await _db.Follows
                 .FirstOrDefaultAsync(f => f.FollowerId == followerId && f.FollowingId == followingId);
@@ -159,16 +162,25 @@ namespace Versum.Services
             if (existingFollow != null)
             {
                 _db.Follows.Remove(existingFollow);
-                if (currentUser.FollowingCount > 0) currentUser.FollowingCount--;
             }
             else
             {
                 _db.Follows.Add(new Follow { FollowerId = followerId, FollowingId = followingId });
-                currentUser.FollowingCount++;
             }
 
             await _db.SaveChangesAsync();
             return (true, null);
+        }
+        public async Task<List<UserFollowDto>> GetFollowingsListAsync(string username)
+        {
+            return await _db.Follows
+                .Where(f => f.Follower.Username == username)
+                .Select(f => new UserFollowDto
+                {
+                    Username = f.Following.Username,
+                    DisplayName = f.Following.Profile.Name
+                })
+                .ToListAsync();
         }
 
     }

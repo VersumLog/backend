@@ -36,7 +36,7 @@ namespace Versum.Context
 
             modelBuilder.Entity<Post>()
             .HasOne(p => p.Author)
-            .WithMany(u => u.Posts)
+            .WithMany(a => a.Posts)
             .HasForeignKey(p => p.AuthorId);
 
             modelBuilder.Entity<Genre>()
