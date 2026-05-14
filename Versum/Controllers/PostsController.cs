@@ -139,7 +139,7 @@ namespace Versum.Controllers
 
         }
 
-        [HttpGet("{postId}")]
+        [HttpGet("{postId}")] 
         public async Task<IActionResult> GetPostById(int postId)
         {
             //not required to be authorized, but allows you to see your drafts

@@ -9,12 +9,12 @@ public static class PostExtensions
 {
     public static IQueryable<Post> OnlyPublished(this IQueryable<Post> query)
     {
-        return query.Where(p => !p.IsDraft);
+        return query.Where(p => !p.IsDraft && !p.IsDeleted);
     }
 
     public static IQueryable<Post> OnlyDrafts(this IQueryable<Post> query)
     {
-        return query.Where(p => p.IsDraft);
+        return query.Where(p => p.IsDraft && !p.IsDeleted);
     }
 
     public static IQueryable<Post> ApplySorting(

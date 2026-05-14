@@ -115,7 +115,7 @@ namespace Versum.Services
         .Where(p => p.Id == postId)
         .FirstOrDefaultAsync();
 
-            if (post == null || (post.IsDraft && post.AuthorId != userID))
+            if (post == null || post.IsDeleted || (post.IsDraft && post.AuthorId != userID))
             {
                 return (null, "Твір не знайдено або він ще не опублікований");
             }
