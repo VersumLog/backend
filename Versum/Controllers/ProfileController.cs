@@ -105,5 +105,12 @@ namespace Versum.Controllers
             return Ok(new { message = "Статус підписки змінено" });
         }
 
+        [HttpGet("{username}/followings")]
+        public async Task<IActionResult> GetFollowings(string username)
+        {
+            var followings = await _profileService.GetFollowingsListAsync(username.ToLower());
+            return Ok(followings);
+        }
+
     }
 }
