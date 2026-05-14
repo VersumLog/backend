@@ -68,14 +68,7 @@ namespace Versum.Services
                 throw new ArgumentException("Username cannot be null or empty.", nameof(username));
             }
 
-            var user = await _db.Users
-            .Include(u => u.Profile)
-            .Include(u => u.AuthorProfile)
-            .FirstOrDefaultAsync(u => u.Username == username);
-
-            bool isCurrentGuest = claimedUserID == null;
-
-            if (user == null) return null;
+            
 
             return await _db.Users
                 .Where(u => u.Username == username)
@@ -87,10 +80,12 @@ namespace Versum.Services
                     CreatedAt = u.CreatedAt,
                     IsAuthor = (u.AuthorProfile != null),
                     IsOwner = u.Id == claimedUserID,
-                    WorksCount = u.AuthorProfile.Posts.Count(p => !p.IsDeleted && !p.IsDraft),
+                    WorksCount = u.AuthorProfile != null
+                    ? u.AuthorProfile.Posts.Count(p => !p.IsDeleted && !p.IsDraft)
+                    : 0,
                     FollowingCount = _db.Follows.Count(f => f.FollowerId == u.Id),
                     FollowersCount = _db.Follows.Count(f => f.FollowingId == u.Id),
-                    IsFollowing = !isCurrentGuest && _db.Follows.Any(f => f.FollowerId == claimedUserID && f.FollowingId == u.Id)
+                    IsFollowing = claimedUserID != null && _db.Follows.Any(f => f.FollowerId == claimedUserID && f.FollowingId == u.Id)
                 })
                 .FirstOrDefaultAsync();
         }
