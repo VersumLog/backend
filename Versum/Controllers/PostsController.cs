@@ -17,14 +17,13 @@ namespace Versum.Controllers
     [Route("api/[controller]")]
     public class PostsController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
-        private readonly IHubContext<NotificationHub> _hubContext;
+      
+     /*  private readonly IHubContext<NotificationHub> _hubContext; */
         private readonly IPostService _postService;
 
-        public PostsController(ApplicationDbContext context, IHubContext<NotificationHub> hubContext, IPostService postService)
+        public PostsController(IPostService postService)
         {
-            _context = context;
-            _hubContext = hubContext;
+         
             _postService = postService;
         }
 
@@ -98,6 +97,8 @@ namespace Versum.Controllers
             if (!success)
             {
                 if (error == "DraftNotFound") return NotFound(new { message = "Чернетку не знайдено" });
+                if (error == "You can't edit published writings") return NotFound(new { message = "Твір уже опубліковано" });
+                if (error == "YouAreNotAnOwnerOfDraft") return NotFound(new { message = "Ви нє автором чернетки" });
                 return BadRequest(new { message = error });
             }
 
