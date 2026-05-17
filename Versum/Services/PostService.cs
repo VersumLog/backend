@@ -5,6 +5,7 @@ using Versum.Models;
 using Versum.Core.Enums;
 using Versum.Extensions;
 using Versum.Context;
+using Ganss.Xss;
 
 namespace Versum.Services
 {
@@ -135,9 +136,13 @@ namespace Versum.Services
                 if (draft.IsDraft == false) return (false, "You can't edit published writings");
                 if (draft.AuthorId != userId) return (false, "YouAreNotAnOwnerOfDraft");
 
+                var sanitizer = new HtmlSanitizer();
+                sanitizer.AllowedAttributes.Add("data-description");
+                sanitizer.AllowedAttributes.Add("class");
+
                 draft.Title = dto.Title;
                 draft.Description = dto.Description;
-                draft.Content = dto.Content;
+                draft.Content = sanitizer.Sanitize(dto.Content);
                 draft.Genres = _db.Genres.Where(g => dto.Genres.Contains(g.Name)).ToList();
 
                 await _db.SaveChangesAsync();
