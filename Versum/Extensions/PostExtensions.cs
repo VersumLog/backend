@@ -45,23 +45,13 @@ public static class PostExtensions
             _ => query.OrderByDescending(p => p.Id)
         };
 
-    public static IQueryable<UserPostsGetDto> ProjectToPostDto(this IQueryable<Post> query)
+    public static IQueryable<PostGetDto> ProjectToPostDto(this IQueryable<Post> query)
     {
-        return query.Select(p => new UserPostsGetDto
-        {
-            PostId = p.Id,
-            Title = p.Title,
-            Description = p.Description ?? "none",
-            Content = p.Content ?? "none",
-            CreatedAt = p.CreatedAt,
-            Username = p.Author.User.Username,
-            Name = p.Author.User.Profile.Name ?? "none",
-            Genres = p.Genres.Select(g => g.Name).ToList()
-        });
+        return query.Select(p => PostToPostGetDto(p));
     }
-    public static UserPostsGetDto PostToUserPostsGetDto(this Post p)
+    public static PostGetDto PostToPostGetDto(this Post p)
     {
-        return new UserPostsGetDto
+        return new PostGetDto
         {
             PostId = p.Id,
             Title = p.Title,
