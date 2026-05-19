@@ -90,6 +90,10 @@ namespace Versum.Services
                 .AsNoTracking()
                 .Where(p => p.AuthorId == authorId)
                 .OnlyDrafts()
+                .Include(p => p.Author)
+                    .ThenInclude(a => a.User)
+                        .ThenInclude(u => u.Profile)
+                .Include(p => p.Genres)
                 .ApplySorting(query.Filter, query.Ascending)
                 .ProjectToPostDto()
                 .ToListAsync();
@@ -101,6 +105,10 @@ namespace Versum.Services
                 .AsNoTracking()
                 .Where(p => p.AuthorId == authorId)
                 .OnlyPublished()
+                .Include(p => p.Author)
+                    .ThenInclude(a => a.User)
+                        .ThenInclude(u => u.Profile)
+                .Include(p => p.Genres)
                 .ApplySorting(query.Filter, query.Ascending)
                 .ProjectToPostDto()
                 .ToListAsync();
