@@ -4,7 +4,7 @@ using System.Data;
 
 namespace Versum.Dtos
 {
-    public class UserPostsGetDto
+    public class PostGetDto
     {
         public string Title { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;

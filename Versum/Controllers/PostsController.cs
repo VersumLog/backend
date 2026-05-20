@@ -20,12 +20,14 @@ namespace Versum.Controllers
         private readonly ApplicationDbContext _context;
         private readonly IHubContext<NotificationHub> _hubContext;
         private readonly IPostService _postService;
+        private readonly IProfileService _profileService;
 
-        public PostsController(ApplicationDbContext context, IHubContext<NotificationHub> hubContext, IPostService postService)
+        public PostsController(ApplicationDbContext context, IHubContext<NotificationHub> hubContext, IPostService postService, IProfileService profileService)
         {
             _context = context;
             _hubContext = hubContext;
             _postService = postService;
+            _profileService = profileService;
         }
 
 
@@ -108,36 +110,30 @@ namespace Versum.Controllers
             });
         }
 
-
-        [HttpGet("get-drafts")]
+        //---CRITICAL: Post content is sent every time, though it is not needed. Reminder: Content can have up to 500k letters...
+        [HttpGet("drafts")]
         [Authorize]
-        public async Task<ActionResult<IEnumerable<UserPostsGetDto>>> GetDrafts(
-            [FromQuery] FilterOptions filter,
-            [FromQuery] bool ascending)
+        public async Task<ActionResult<IEnumerable<PostGetDto>>> GetDrafts([FromQuery] PostQueryDto query)
         {
             var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (!int.TryParse(userIdClaim, out int authorId))
             {
                 return Unauthorized();
             }
-            var drafts = await _postService.GetUserDraftsAsync(authorId, filter, ascending);
-            return Ok(drafts); //Користувачі, які не мають ролі автора або не мають створених чернеток отримують порожній список
+            var drafts = await _postService.GetUserDraftsAsync(authorId, query);
+            return Ok(drafts);
         }
 
-        [HttpGet("get-posts")]
-        public async Task<ActionResult<IEnumerable<UserPostsGetDto>>> GetPosts(
-            [FromQuery] UserPostsRequestDto dto
-            )
+        //---CRITICAL: Post content is sent every time, though it is not needed. Reminder: Content can have up to 500k letters...
+        [HttpGet("user/{username}")]
+        public async Task<ActionResult<IEnumerable<PostGetDto>>> GetPosts([FromRoute] string username, [FromQuery] PostQueryDto query)
         {
-            var (posts, error) = await _postService.GetUserPostsAsync(dto);
-            if (error != null)
-            {
-                if (error == "UserNotFound") return NotFound(new { message = "Користувача не знайдено" });
-                return BadRequest(new { message = error });
-            }
+            var userId = await _profileService.GetUserIdByUsernameAsync(username);
+            if (userId == null)
+                return NotFound(new { message = "Користувача не знайдено" });
 
+            var posts = await _postService.GetUserPostsAsync(userId.Value, query);
             return Ok(posts);
-
         }
 
         [HttpGet("{postId}")] 

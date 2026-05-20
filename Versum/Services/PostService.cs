@@ -81,47 +81,56 @@ namespace Versum.Services
             }
         }
 
-        public async Task<List<UserPostsGetDto>> GetUserDraftsAsync(int authorId, FilterOptions filter, bool ascending)
+
+        //consider combining onto one GetUserPosts
+        //---CRITICAL: Post content is sent every time, though it is not needed. Reminder: Content can have up to 500k letters...
+        public async Task<List<PostGetDto>?> GetUserDraftsAsync(int authorId, PostQueryDto query)
         {
             return await _db.Posts
-        .AsNoTracking()
-        .Where(p => p.AuthorId == authorId)
-        .OnlyDrafts()
-        .ApplySorting(filter, ascending)
-        .ProjectToPostDto()
-        .ToListAsync();
+                .AsNoTracking()
+                .Where(p => p.AuthorId == authorId)
+                .OnlyDrafts()
+                .Include(p => p.Author)
+                    .ThenInclude(a => a.User)
+                        .ThenInclude(u => u.Profile)
+                .Include(p => p.Genres)
+                .ApplySorting(query.Filter, query.Ascending)
+                .ProjectToPostDto()
+                .ToListAsync();
         }
 
-        public async Task<(List<UserPostsGetDto>?, string? Error)> GetUserPostsAsync(UserPostsRequestDto dto)
+        public async Task<List<PostGetDto>?> GetUserPostsAsync(int authorId, PostQueryDto query)
         {
-            var user = await _db.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Username == dto.Username);
-            if (user == null) return new(null, "UserNotFound");
-            return (await _db.Posts
-        .AsNoTracking()
-        .Where(p => p.AuthorId == user.Id)
-        .OnlyPublished()
-        .ApplySorting(dto.Filter, dto.Ascending)
-        .ProjectToPostDto()
-        .ToListAsync(), null);
+            return await _db.Posts
+                .AsNoTracking()
+                .Where(p => p.AuthorId == authorId)
+                .OnlyPublished()
+                .Include(p => p.Author)
+                    .ThenInclude(a => a.User)
+                        .ThenInclude(u => u.Profile)
+                .Include(p => p.Genres)
+                .ApplySorting(query.Filter, query.Ascending)
+                .ProjectToPostDto()
+                .ToListAsync();
         }
 
-        public async Task<(UserPostsGetDto?, string? Error)> GetPostAsync(int postId, int? userID)
+        public async Task<(PostGetDto?, string? Error)> GetPostAsync(int postId, int? userID)
         {
             var post = await _db.Posts
-        .AsNoTracking()
-        .Include(p => p.Author)
-            .ThenInclude(a => a.User)
-                .ThenInclude(u => u.Profile)
-        .Include(p => p.Genres)
-        .Where(p => p.Id == postId)
-        .FirstOrDefaultAsync();
+                .AsNoTracking()
+                .Include(p => p.Author)
+                    .ThenInclude(a => a.User)
+                        .ThenInclude(u => u.Profile)
+                .Include(p => p.Genres)
+                .Where(p => p.Id == postId)
+                .FirstOrDefaultAsync();
 
             if (post == null || post.IsDeleted || (post.IsDraft && post.AuthorId != userID))
             {
                 return (null, "Твір не знайдено або він ще не опублікований");
             }
 
-            return (post.PostToUserPostsGetDto(), null);
+            return (post.PostToPostGetDto(), null);
         }
 
         public async Task<(bool Success, string? Error)> UpdateDraftAsync(int postId,int userId, PostDto dto)
