@@ -148,6 +148,7 @@ namespace Versum.Services
                 var sanitizer = new HtmlSanitizer();
                 sanitizer.AllowedAttributes.Add("data-description");
                 sanitizer.AllowedAttributes.Add("class");
+                sanitizer.AllowedAttributes.Add("id");
 
                 draft.Title = dto.Title;
                 draft.Description = dto.Description;
