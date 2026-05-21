@@ -11,4 +11,5 @@ public interface IProfileService
 
     Task<List<UserFollowDto>> GetFollowingsListAsync(string username);
     Task<int?> GetUserIdByUsernameAsync(string username);
+    Task<string?> GetUsernameByUserIdAsync(int userId);
 }

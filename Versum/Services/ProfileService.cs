@@ -11,10 +11,12 @@ namespace Versum.Services
     {
 
         private readonly ApplicationDbContext _db;
-        public ProfileService(ApplicationDbContext db)
+        private readonly INotificationService _notificationService;
 
+        public ProfileService(ApplicationDbContext db, INotificationService notificationService)
         {
             _db = db;
+            _notificationService = notificationService;
         }
         public async Task<(bool success, string? error)> UpdateProfileAsync(int UserId, UserProfileDto dto)
         {
@@ -146,6 +148,13 @@ namespace Versum.Services
                 .Select(u => (int?)u.Id)
                 .FirstOrDefaultAsync();
         }
+        public async Task<string?> GetUsernameByUserIdAsync(int userId)
+        {
+            return await _db.Users
+                .Where(u => u.Id == userId)
+                .Select(u => u.Username)
+                .FirstOrDefaultAsync();
+        }
 
         public async Task<(bool success, string? error)> ToggleFollowAsync(int followerId, int followingId)
         {
@@ -154,13 +163,23 @@ namespace Versum.Services
             var existingFollow = await _db.Follows
                 .FirstOrDefaultAsync(f => f.FollowerId == followerId && f.FollowingId == followingId);
 
+            bool isFollowed = false; 
+
             if (existingFollow != null)
             {
-                _db.Follows.Remove(existingFollow);
+                _db.Follows.Remove(existingFollow); //unsub
             }
             else
             {
                 _db.Follows.Add(new Follow { FollowerId = followerId, FollowingId = followingId });
+                isFollowed = true; //sub
+            }
+
+            //notification
+            if (isFollowed)
+            {
+                var username = await GetUsernameByUserIdAsync(followerId);
+                await _notificationService.SendFollowNotificationAsync(followingId, username ?? "Хтось");
             }
 
             await _db.SaveChangesAsync();
