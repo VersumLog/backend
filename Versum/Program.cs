@@ -41,6 +41,7 @@ builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IProfileService, ProfileService>();
 builder.Services.AddScoped<IBCAuthorService, BCAuthorService>();
 builder.Services.AddScoped<IPostService, PostService>();
+builder.Services.AddScoped<IDictService, DictService>();
 
 builder.Services.AddAuthentication(options =>
 {
