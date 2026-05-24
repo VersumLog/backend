@@ -15,8 +15,8 @@ namespace Versum.Context
         public DbSet<UserProfile> Profiles { get; set; }
         public DbSet<Author> Authors { get; set; }
         public DbSet<Genre> Genres { get; set; }
-
         public DbSet<Follow> Follows { get; set; } = null!;
+        public DbSet<Dictionary> Dictionary { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
 
@@ -57,6 +57,10 @@ namespace Versum.Context
                     .WithMany()
                     .HasForeignKey(f => f.FollowingId);
             });
+
+            modelBuilder.Entity<Dictionary>()
+           .HasIndex(d => new { d.UserId, d.Phrase })
+           .IsUnique();
         }
     }
 }

@@ -21,6 +21,7 @@ namespace VersumTestProject.ServicesTest
         private readonly ApplicationDbContext _context;
         private readonly ApplicationDbContext _assertContext;
         private readonly ProfileService _profileService;
+        private readonly NotificationService _notificationsService;
 
         private const string TestUsername = "vixy";
         private const string UpdatedUsername = "vixy_upd";
@@ -36,7 +37,7 @@ namespace VersumTestProject.ServicesTest
                 .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString()).Options;
 
             _context = new ApplicationDbContext(options);
-            _profileService = new ProfileService(_context);
+            _profileService = new ProfileService(_context, _notificationsService);
             _assertContext = new ApplicationDbContext(options);
         }
 
