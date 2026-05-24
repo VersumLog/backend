@@ -12,6 +12,7 @@ namespace VersumTestProject.ControllerTest
     public class PostControllerTests
     {
         private readonly Mock<IPostService> _postServiceMock;
+        private readonly Mock<IProfileService> _profileServiceMock;
         private readonly PostsController _controller;
 
         private const string TestTitle = "title";
@@ -20,7 +21,8 @@ namespace VersumTestProject.ControllerTest
         public PostControllerTests()
         {
             _postServiceMock = new Mock<IPostService>();
-            _controller = new PostsController( _postServiceMock.Object);
+            _profileServiceMock = new Mock<IProfileService>();
+            _controller = new PostsController( _postServiceMock.Object, _profileServiceMock.Object);
 
             // mocking authorized user
             var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[]

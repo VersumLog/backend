@@ -18,11 +18,10 @@ namespace Versum.Controllers
     public class PostsController : ControllerBase
     {
       
-     /*  private readonly IHubContext<NotificationHub> _hubContext; */
         private readonly IPostService _postService;
         private readonly IProfileService _profileService;
 
-        public PostsController(ApplicationDbContext context, IHubContext<NotificationHub> hubContext, IPostService postService, IProfileService profileService)
+        public PostsController(IPostService postService, IProfileService profileService)
         {
          
             _postService = postService;
