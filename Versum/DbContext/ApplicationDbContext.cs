@@ -17,6 +17,7 @@ namespace Versum.Context
         public DbSet<Genre> Genres { get; set; }
         public DbSet<Follow> Follows { get; set; } = null!;
         public DbSet<Dictionary> Dictionary { get; set; } = null!;
+        public DbSet<Notification> Notifications { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
 
