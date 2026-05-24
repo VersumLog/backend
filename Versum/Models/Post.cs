@@ -15,6 +15,11 @@ namespace Versum
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public bool IsDraft { get; set; }
         public bool IsDeleted { get; set; } = false;
-    
+
+        public int LikesCount { get; set; } = 0;
+        public int CommentsCount { get; set; } = 0;
+        public ICollection<Like> Likes { get; set; } = new List<Like>();
+        public ICollection<Comment> Comments { get; set; } = new List<Comment>();
+
     }
 }
