@@ -59,7 +59,7 @@ namespace Versum.Context
             });
 
             modelBuilder.Entity<Dictionary>()
-           .HasIndex(d => new { d.UserId, d.Phrase })
+           .HasIndex(d => new { d.UserId, d.PostId, d.AnchorId })
            .IsUnique();
         }
     }

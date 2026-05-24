@@ -25,12 +25,9 @@ namespace Versum.Controllers
             _dictService = dictService;
         }
 
-
-
-
-        [HttpPost("{postId}/add-phrase")]
+        [HttpPost("add-phrase")]
         [Authorize]
-        public async Task<IActionResult> AddPhrase(int postId, [FromBody] DictDto dto)
+        public async Task<IActionResult> AddPhrase([FromBody] DictDto dto)
         {
 
             var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -39,7 +36,7 @@ namespace Versum.Controllers
                 return Unauthorized();
             }
 
-            var (success, error) = await _dictService.AddPhraseAsync(userId, postId, dto);
+            var (success, error) = await _dictService.AddPhraseAsync(userId, dto);
 
             if (!success)
             {
@@ -80,7 +77,7 @@ namespace Versum.Controllers
 
         [HttpGet("get-dictionary")]
         [Authorize]
-        public async Task<IActionResult> GetPhrase()
+        public async Task<IActionResult> GetDictionary()
         {
 
             var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -89,7 +86,7 @@ namespace Versum.Controllers
                 return Unauthorized();
             }
 
-            var (success,phrases,error) = await _dictService.GetPhraseAsync(userId);
+            var (success,phrases,error) = await _dictService.GetDictionaryAsync(userId);
 
             if (!success)
             {
@@ -100,10 +97,5 @@ namespace Versum.Controllers
 
             return Ok(phrases);
         }
-
-
-
-
     }
 }
-
