@@ -100,7 +100,7 @@ namespace Versum.Controllers
 
             return StatusCode(201, new
             {
-                message = "Чернетку збережено",
+                message = "Чернетку збережено",             
 
             });
         }

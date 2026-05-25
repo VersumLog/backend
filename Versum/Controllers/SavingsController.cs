@@ -72,7 +72,7 @@ namespace Versum.Controllers
         }
 
 
-        [HttpGet("get-posts")]
+        [HttpGet("get-savings")]
         [Authorize]
         public async Task<IActionResult> GetSavedPosts()
         {

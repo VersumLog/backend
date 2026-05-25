@@ -2,6 +2,7 @@
 using Versum.Context;
 using Versum.Dtos;
 using Versum.Models;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 
 namespace Versum.Services
@@ -67,22 +68,33 @@ namespace Versum.Services
             }
         }
 
-        public async Task<(bool Success, List<SavingsResponseDto>?, string? Error)> GetSavedPostAsync(int userId)
+        public async Task<(bool Success, List<PostGetDto>?, string? Error)> GetSavedPostAsync(int userId)
         {
-            var savings = await _db.Savings
-             .AsNoTracking()
-             .Where(s => s.UserId == userId).OrderByDescending(s => s.SavedAt)
-             .Select(s => new SavingsResponseDto
-             {
-              
-                 UserId = s.UserId,
-                 PostId = s.PostId,
-                 SavedAt = s.SavedAt
-                
-             })
-             .ToListAsync();
 
-            return (true, savings, null);
+            var userExists = await _db.Users.AnyAsync(u => u.Id == userId);
+            if (!userExists) return (false, null, "UserNotFound");
+
+          
+            var savedPost = await _db.Savings
+              .AsNoTracking()
+              .Where(s => s.UserId == userId )
+              .OrderByDescending(s => s.SavedAt)
+              .Select(s => new PostGetDto
+              {
+                  Title = s.Post.Title,
+                  Description = s.Post.Description,
+                  Content = s.Post.Content,
+                  CreatedAt = s.Post.CreatedAt,
+                  Username = s.User.Username,
+                  Name = s.User.Profile.Name,
+                  Genres = s.Post.Genres.Select(g => g.Name).ToList(),
+                  LikesCount = s.Post.LikesCount,
+                  CommentsCount = s.Post.CommentsCount,
+                  IsLikedByUser = s.Post.Likes.Any(l => l.UserId == userId)
+              })
+               .ToListAsync();
+
+            return (true, savedPost, null);
 
         }
 
