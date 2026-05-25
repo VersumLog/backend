@@ -43,6 +43,7 @@ builder.Services.AddScoped<IBCAuthorService, BCAuthorService>();
 builder.Services.AddScoped<IPostService, PostService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IDictService, DictService>();
+builder.Services.AddScoped<ISavingsService, SavingsService>();
 builder.Services.AddScoped<ICommentLikeService, CommentLikeService>();
 
 builder.Services.AddAuthentication(options =>

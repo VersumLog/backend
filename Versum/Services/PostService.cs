@@ -1,8 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using System.ComponentModel.DataAnnotations;
 using Versum.Dtos;
-using Versum.Models;
-using Versum.Core.Enums;
 using Versum.Extensions;
 using Versum.Context;
 using Ganss.Xss;
