@@ -17,6 +17,7 @@ namespace Versum.Context
         public DbSet<Genre> Genres { get; set; }
         public DbSet<Follow> Follows { get; set; } = null!;
         public DbSet<Dictionary> Dictionary { get; set; } = null!;
+        public DbSet<Savings> Savings { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
 
@@ -61,6 +62,12 @@ namespace Versum.Context
             modelBuilder.Entity<Dictionary>()
            .HasIndex(d => new { d.UserId, d.Phrase })
            .IsUnique();
+
+           modelBuilder.Entity<Savings>()
+         .HasKey(s => new { s.UserId, s.PostId });
+
+            modelBuilder.Entity<Savings>()
+        .HasIndex(s => new { s.UserId, s.PostId });
         }
     }
 }
