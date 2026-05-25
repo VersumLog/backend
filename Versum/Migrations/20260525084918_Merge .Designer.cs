@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Versum.Context;
@@ -11,9 +12,11 @@ using Versum.Context;
 namespace Versum.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260525084918_Merge ")]
+    partial class Merge
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -162,11 +165,16 @@ namespace Versum.Migrations
                     b.Property<int>("FollowingId")
                         .HasColumnType("integer");
 
+                    b.Property<int?>("UserId")
+                        .HasColumnType("integer");
+
                     b.HasKey("Id");
 
                     b.HasIndex("FollowerId");
 
                     b.HasIndex("FollowingId");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("Follows");
                 });
@@ -229,34 +237,6 @@ namespace Versum.Migrations
                     b.ToTable("Notifications");
                 });
 
-            modelBuilder.Entity("Versum.Models.PostReaction", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("PostId")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime>("ReactedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("Type")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PostId");
-
-                    b.HasIndex("UserId", "PostId", "Type")
-                        .IsUnique();
-
-                    b.ToTable("PostReactions");
             modelBuilder.Entity("Versum.Models.Savings", b =>
                 {
                     b.Property<int>("UserId")
@@ -488,17 +468,20 @@ namespace Versum.Migrations
                         .IsRequired();
 
                     b.HasOne("Versum.User", "Following")
-                        .WithMany("Followers")
+                        .WithMany()
                         .HasForeignKey("FollowingId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("Versum.User", null)
+                        .WithMany("Followers")
+                        .HasForeignKey("UserId");
 
                     b.Navigation("Follower");
 
                     b.Navigation("Following");
                 });
 
-            modelBuilder.Entity("Versum.Models.PostReaction", b =>
             modelBuilder.Entity("Versum.Models.Like", b =>
                 {
                     b.HasOne("Versum.Post", "Post")

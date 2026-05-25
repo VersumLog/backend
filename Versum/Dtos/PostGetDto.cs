@@ -14,6 +14,9 @@ namespace Versum.Dtos
         public string Username { get; set; } = string.Empty;
         public string Name { get; set; } = string.Empty;
         public ICollection<string> Genres { get; set; } = new List<string>();
+        public int LikesCount { get; set; }
+        public int CommentsCount { get; set; }
+        public bool IsLikedByUser { get; set; }
 
     }
 }

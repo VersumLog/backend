@@ -1,12 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.SignalR;
-using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
-using Versum.Core.Enums;
 using Versum.Dtos;
-using Versum.Hubs;
-using Versum.Context;
 using Versum.Services;
 
 
@@ -98,7 +93,7 @@ namespace Versum.Controllers
             if (!success)
             {
                 if (error == "DraftNotFound") return NotFound(new { message = "Чернетку не знайдено" });
-                if (error == "You can't edit published writings") return NotFound(new { message = "Твір уже опубліковано" });
+                if (error == "You can't edit published writings") return Conflict(new { message = "Твір уже опубліковано" });
                 if (error == "YouAreNotAnOwnerOfDraft") return NotFound(new { message = "Ви нє автором чернетки" });
                 return BadRequest(new { message = error });
             }
