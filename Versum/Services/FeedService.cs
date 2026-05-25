@@ -53,7 +53,7 @@ namespace Versum.Services
             var dtos = await _context.Posts
                 .AsNoTracking()
                 .Where(p => postIds.Contains(p.Id))
-                .ProjectToPostDto()
+                .ProjectToPostDto(currentUserId)
                 .ToListAsync();
 
             // Сортуємо DTO

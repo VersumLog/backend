@@ -46,7 +46,7 @@ public static class PostExtensions
             _ => query.OrderByDescending(p => p.Id)
         };
 
-    public static Expression<Func<Post, PostGetDto>> AsPostGetDto => p => new PostGetDto
+    public static Expression<Func<Post, PostGetDto>> AsPostGetDto(int? currentUserId) => p => new PostGetDto
     {
         PostId = p.Id,
         Title = p.Title,
@@ -55,15 +55,18 @@ public static class PostExtensions
         CreatedAt = p.CreatedAt,
         Username = p.Author.User.Username ?? "Unknown",
         Name = p.Author.User.Profile.Name ?? "none",
-        Genres = p.Genres.Select(g => g.Name).ToList()
+        Genres = p.Genres.Select(g => g.Name).ToList(),
+        LikesCount = p.LikesCount,
+        CommentsCount = p.CommentsCount,
+        IsLikedByUser = currentUserId.HasValue && p.Likes.Any(l => l.UserId == currentUserId.Value)
     };
-
-    public static IQueryable<PostGetDto> ProjectToPostDto(this IQueryable<Post> query)
+    public static IQueryable<PostGetDto> ProjectToPostDto(this IQueryable<Post> query, int? currentUserId)
     {
-        return query.Select(AsPostGetDto);
+        return query.Select(AsPostGetDto(currentUserId));
     }
-    public static PostGetDto PostToPostGetDto(this Post post)
+
+    public static PostGetDto PostToPostGetDto(this Post post, int? currentUserId)
     {
-        return AsPostGetDto.Compile()(post);
+        return AsPostGetDto(currentUserId).Compile()(post);
     }
 }

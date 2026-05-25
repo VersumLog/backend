@@ -87,12 +87,8 @@ namespace Versum.Services
                 .AsNoTracking()
                 .Where(p => p.AuthorId == authorId)
                 .OnlyDrafts()
-                .Include(p => p.Author)
-                    .ThenInclude(a => a.User)
-                        .ThenInclude(u => u.Profile)
-                .Include(p => p.Genres)
                 .ApplySorting(query.Filter, query.Ascending)
-                .ProjectToPostDto()
+                .ProjectToPostDto(authorId)
                 .ToListAsync();
         }
 
@@ -102,32 +98,27 @@ namespace Versum.Services
                 .AsNoTracking()
                 .Where(p => p.AuthorId == authorId)
                 .OnlyPublished()
-                .Include(p => p.Author)
-                    .ThenInclude(a => a.User)
-                        .ThenInclude(u => u.Profile)
-                .Include(p => p.Genres)
                 .ApplySorting(query.Filter, query.Ascending)
-                .ProjectToPostDto()
+                .ProjectToPostDto(authorId)
                 .ToListAsync();
         }
 
         public async Task<(PostGetDto?, string? Error)> GetPostAsync(int postId, int? userID)
         {
-            var post = await _db.Posts
+            var postDto = await _db.Posts
                 .AsNoTracking()
-                .Include(p => p.Author)
-                    .ThenInclude(a => a.User)
-                        .ThenInclude(u => u.Profile)
-                .Include(p => p.Genres)
-                .Where(p => p.Id == postId)
+                .Where(p => p.Id == postId
+                         && !p.IsDeleted
+                         && (!p.IsDraft || p.AuthorId == userID))
+                .ProjectToPostDto(userID)
                 .FirstOrDefaultAsync();
 
-            if (post == null || post.IsDeleted || (post.IsDraft && post.AuthorId != userID))
+            if (postDto == null)
             {
                 return (null, "Твір не знайдено або він ще не опублікований");
             }
 
-            return (post.PostToPostGetDto(), null);
+            return (postDto, null);
         }
 
         public async Task<(bool Success, string? Error)> UpdateDraftAsync(int postId,int userId, PostDto dto)
