@@ -17,6 +17,7 @@ namespace Versum.Dtos
         public int LikesCount { get; set; }
         public int CommentsCount { get; set; }
         public bool IsLikedByUser { get; set; }
+        public bool IsSavedByUser { get; set; }
 
     }
 }

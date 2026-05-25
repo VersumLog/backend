@@ -111,6 +111,11 @@ namespace Versum.Controllers
             var followings = await _profileService.GetFollowingsListAsync(username.ToLower());
             return Ok(followings);
         }
-
+        [HttpGet("{username}/followers")]
+        public async Task<IActionResult> GetFollowers(string username)
+        {
+            var followings = await _profileService.GetFollowersListAsync(username.ToLower());
+            return Ok(followings);
+        }
     }
 }

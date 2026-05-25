@@ -45,7 +45,6 @@ namespace Versum.Controllers
             {
                 message = "Твір успішно збережено"
             });
-
         }
 
         [HttpPost("{postId}/unsave-post")]
@@ -68,13 +67,11 @@ namespace Versum.Controllers
             return Ok( new
             { message = "Твір успішно видалено зі збережених" }
             );
-
         }
-
 
         [HttpGet("get-posts")]
         [Authorize]
-        public async Task<IActionResult> GetSavedPosts()
+        public async Task<IActionResult> GetSavedPosts([FromQuery] PostQueryDto query)
         {
             var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (!int.TryParse(userIdClaim, out int userId))
@@ -82,15 +79,13 @@ namespace Versum.Controllers
                 return Unauthorized();
             }
 
-            var (success,savings, error) = await _savingsService.GetSavedPostAsync(userId);
+            var (success,savings, error) = await _savingsService.GetSavedPostAsync(userId, query);
             if (!success)
             {
                 return BadRequest(new { message = error });
             }
 
             return Ok(savings);
-           
-
         }
     }
 }

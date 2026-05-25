@@ -58,7 +58,8 @@ public static class PostExtensions
         Genres = p.Genres.Select(g => g.Name).ToList(),
         LikesCount = p.LikesCount,
         CommentsCount = p.CommentsCount,
-        IsLikedByUser = currentUserId.HasValue && p.Likes.Any(l => l.UserId == currentUserId.Value)
+        IsLikedByUser = currentUserId.HasValue && p.Likes.Any(l => l.UserId == currentUserId.Value),
+        IsSavedByUser = currentUserId.HasValue && p.Savings.Any(s => s.UserId == currentUserId.Value)
     };
     public static IQueryable<PostGetDto> ProjectToPostDto(this IQueryable<Post> query, int? currentUserId)
     {

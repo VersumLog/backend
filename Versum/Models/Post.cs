@@ -20,6 +20,7 @@ namespace Versum
         public int CommentsCount { get; set; } = 0;
         public ICollection<Like> Likes { get; set; } = new List<Like>();
         public ICollection<Comment> Comments { get; set; } = new List<Comment>();
+        public ICollection<Saving> Savings { get; set; } = new List<Saving>();
 
     }
 }

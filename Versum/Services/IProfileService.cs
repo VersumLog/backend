@@ -10,6 +10,7 @@ public interface IProfileService
     Task<(bool success, string? error)> ToggleFollowAsync(int followerId, int followingId);
 
     Task<List<UserFollowDto>> GetFollowingsListAsync(string username);
+    Task<List<UserFollowDto>> GetFollowersListAsync(string username);
     Task<int?> GetUserIdByUsernameAsync(string username);
     Task<string?> GetUsernameByUserIdAsync(int userId);
 }

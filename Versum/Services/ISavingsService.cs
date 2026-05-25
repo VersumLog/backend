@@ -6,6 +6,6 @@ namespace Versum.Services
     {
         Task<(bool Success, string? Error)> SavePostAsync(int postId, int userId);
         Task<(bool Success, string? Error)> UnSavePostAsync(int postId,int userId);
-        Task<(bool Success, List<SavingsResponseDto>?, string? Error)>  GetSavedPostAsync(int userId);
+        Task<(bool Success, List<PostGetDto>?, string? Error)>  GetSavedPostAsync(int userId, PostQueryDto query);
     }
 }

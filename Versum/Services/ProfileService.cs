@@ -196,7 +196,17 @@ namespace Versum.Services
                 })
                 .ToListAsync();
         }
-
+        public async Task<List<UserFollowDto>> GetFollowersListAsync(string username)
+        {
+            return await _db.Follows
+                .Where(f => f.Following.Username == username)
+                .Select(f => new UserFollowDto
+                {
+                    Username = f.Follower.Username,
+                    DisplayName = f.Follower.Profile.Name
+                })
+                .ToListAsync();
+        }
     }
 
 }

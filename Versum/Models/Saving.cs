@@ -1,6 +1,6 @@
 ﻿namespace Versum.Models
 {
-    public class Savings
+    public class Saving
     {
 
         public int UserId { get; set; }

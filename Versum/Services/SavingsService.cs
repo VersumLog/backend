@@ -2,6 +2,8 @@
 using Versum.Context;
 using Versum.Dtos;
 using Versum.Models;
+using Versum.Extensions;
+using Ganss.Xss;
 
 
 namespace Versum.Services
@@ -26,7 +28,7 @@ namespace Versum.Services
             var alreadySaved = await _db.Savings.AnyAsync(s => s.UserId == userId && s.PostId == postId);
             if (alreadySaved) return (false, "PostIsSaved");
 
-            var saved = new Savings
+            var saved = new Saving
             {
                 UserId = userId,
                 PostId = postId,
@@ -67,24 +69,18 @@ namespace Versum.Services
             }
         }
 
-        public async Task<(bool Success, List<SavingsResponseDto>?, string? Error)> GetSavedPostAsync(int userId)
+        public async Task<(bool Success, List<PostGetDto>?, string? Error)> GetSavedPostAsync(int userId, PostQueryDto query)
         {
             var savings = await _db.Savings
              .AsNoTracking()
-             .Where(s => s.UserId == userId).OrderByDescending(s => s.SavedAt)
-             .Select(s => new SavingsResponseDto
-             {
-              
-                 UserId = s.UserId,
-                 PostId = s.PostId,
-                 SavedAt = s.SavedAt
-                
-             })
+             .Where(s => s.UserId == userId)
+             .OrderByDescending(s => s.SavedAt)
+             .Select(s => s.Post)
+             .ApplySorting(query.Filter, query.Ascending)
+             .ProjectToPostDto(userId)
              .ToListAsync();
 
             return (true, savings, null);
-
         }
-
     }
 }

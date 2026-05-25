@@ -17,7 +17,7 @@ namespace Versum.Context
         public DbSet<Genre> Genres { get; set; }
         public DbSet<Follow> Follows { get; set; } = null!;
         public DbSet<Dictionary> Dictionary { get; set; } = null!;
-        public DbSet<Savings> Savings { get; set; } = null!;
+        public DbSet<Saving> Savings { get; set; } = null!;
         public DbSet<Notification> Notifications { get; set; } = null!;
         public DbSet<PostReaction> PostReactions { get; set; } = null!;
 
@@ -82,17 +82,29 @@ namespace Versum.Context
             });
 
             modelBuilder.Entity<Dictionary>()
-           .HasIndex(d => new { d.UserId, d.PostId, d.AnchorId })
-           .IsUnique();
+               .HasIndex(d => new { d.UserId, d.PostId, d.AnchorId })
+               .IsUnique();
 
-           modelBuilder.Entity<Savings>()
-         .HasKey(s => new { s.UserId, s.PostId });
 
-            modelBuilder.Entity<Savings>()
-        .HasIndex(s => new { s.UserId, s.PostId });
+            modelBuilder.Entity<Saving>()
+                .HasKey(s => new { s.UserId, s.PostId });
+
+            modelBuilder.Entity<Saving>()
+                .HasOne(l => l.Post)
+                .WithMany(p => p.Savings)
+                .HasForeignKey(l => l.PostId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Saving>()
+                .HasOne(l => l.User)
+                .WithMany()
+                .HasForeignKey(l => l.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+
             modelBuilder.Entity<Like>()
-            .HasIndex(l => new { l.UserId, l.PostId })
-            .IsUnique(); 
+                .HasIndex(l => new { l.UserId, l.PostId })
+                .IsUnique(); 
 
             modelBuilder.Entity<Like>()
                 .HasOne(l => l.Post)
