@@ -19,6 +19,10 @@ namespace Versum.Services
         {
             var feed = await _context.Posts
                 .AsNoTracking()
+                .Include(p => p.Author)
+                    .ThenInclude(a => a.User)
+                        .ThenInclude(u => u.Profile)
+                .Include(p => p.Genres)
                 .OnlyPublished()
                 .Where(p => _context.Follows.Any(f => f.FollowerId == currentUserId && f.FollowingId == p.AuthorId))
                 .Where(p => !_context.PostReactions.Any(pr => pr.PostId == p.Id && pr.UserId == currentUserId))
@@ -27,16 +31,18 @@ namespace Versum.Services
                 .ProjectToPostDto()
                 .ToListAsync();
 
-            // добираємо загальні пости, якщо від підписок замало
             if (feed.Count < limit)
             {
                 int remainingCount = limit - feed.Count;
 
-                // Звертаємось до PostId, оскільки ProjectToPostDto повертає PostGetDto
                 var existingIds = feed.Select(p => p.PostId).ToList();
 
                 var globalTrendingPosts = await _context.Posts
                     .AsNoTracking()
+                    .Include(p => p.Author)
+                        .ThenInclude(a => a.User)
+                            .ThenInclude(u => u.Profile)
+                    .Include(p => p.Genres)
                     .OnlyPublished()
                     .Where(p => !existingIds.Contains(p.Id))
                     .Where(p => !_context.PostReactions.Any(pr => pr.PostId == p.Id && pr.UserId == currentUserId))

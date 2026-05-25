@@ -45,6 +45,7 @@ builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IDictService, DictService>();
 builder.Services.AddScoped<ISavingsService, SavingsService>();
 builder.Services.AddScoped<ICommentLikeService, CommentLikeService>();
+builder.Services.AddScoped<IFeedService, FeedService>();
 
 builder.Services.AddAuthentication(options =>
 {

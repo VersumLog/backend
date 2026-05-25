@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using System.Linq.Expressions;
 using Versum.Core.Enums;
 using Versum.Dtos;
 using Versum.Models;
@@ -45,22 +46,24 @@ public static class PostExtensions
             _ => query.OrderByDescending(p => p.Id)
         };
 
+    public static Expression<Func<Post, PostGetDto>> AsPostGetDto => p => new PostGetDto
+    {
+        PostId = p.Id,
+        Title = p.Title,
+        Description = p.Description ?? "none",
+        Content = p.Content ?? "none",
+        CreatedAt = p.CreatedAt,
+        Username = p.Author.User.Username ?? "Unknown",
+        Name = p.Author.User.Profile.Name ?? "none",
+        Genres = p.Genres.Select(g => g.Name).ToList()
+    };
+
     public static IQueryable<PostGetDto> ProjectToPostDto(this IQueryable<Post> query)
     {
-        return query.Select(p => PostToPostGetDto(p));
+        return query.Select(AsPostGetDto);
     }
-    public static PostGetDto PostToPostGetDto(this Post p)
+    public static PostGetDto PostToPostGetDto(this Post post)
     {
-        return new PostGetDto
-        {
-            PostId = p.Id,
-            Title = p.Title,
-            Description = p.Description ?? "none",
-            Content = p.Content ?? "none",
-            CreatedAt = p.CreatedAt,
-            Username = p.Author?.User?.Username ?? "Unknown",
-            Name = p.Author?.User?.Profile?.Name ?? "none",
-            Genres = p.Genres?.Select(g => g.Name).ToList() ?? new List<string>()
-        };
+        return AsPostGetDto.Compile()(post);
     }
 }
