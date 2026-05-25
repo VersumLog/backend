@@ -177,6 +177,20 @@ namespace Versum.Controllers
             var genres = await _postService.GetGenresAsync();
             return Ok(genres);
         }
+
+        [HttpPost("add-genre")]
+        [Authorize] // Залежно від логіки платформи, пізніше тут можна додати [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> AddGenre([FromBody] GenreCreateDto dto)
+        {
+            var (success, error) = await _postService.AddGenreAsync(dto.Name);
+
+            if (!success)
+            {
+                return BadRequest(new { message = error });
+            }
+
+            return StatusCode(201, new { message = "Жанр успішно додано" });
+        }
     }
 
  }
