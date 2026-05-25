@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Versum.Context;
 using Versum.Dtos;
 using Versum.Extensions;
@@ -14,11 +10,8 @@ namespace Versum.Services
     {
         private readonly ApplicationDbContext _context;
 
-        // Константа стартового пріоритету для нових творів
         private const float BASE_PRIORITY = 100.0f;
-        // Бонусні бали, якщо автор у підписках
         private const float FOLLOW_BONUS = 20.0f;
-        // Штраф за кожен новий перегляд
         private const float VIEW_PENALTY = 10.0f;
 
         public FeedService(ApplicationDbContext context)
@@ -28,11 +21,11 @@ namespace Versum.Services
 
         public async Task<List<PostGetDto>> GetSmartFeedAsync(int currentUserId, int limit = 20, int skip = 0)
         {
-            // Крок 1: Отримуємо тільки метадані (ID, реакцію та статус підписки)
-            // Запит залишається дуже легким, бо база не витягує тексти та великі об'єкти
+            // Крок 1: Отримуємо тільки метадані 
             var metadata = await _context.Posts
                 .AsNoTracking()
                 .OnlyPublished()
+                .Where(p => p.AuthorId != currentUserId) // ВАЖЛИВО: Виключаємо власні твори користувача з рекомендацій
                 .Select(p => new
                 {
                     PostId = p.Id,
@@ -53,23 +46,22 @@ namespace Versum.Services
                 return new List<PostGetDto>();
             }
 
-            // Крок 2: Збираємо ID відібраних постів у правильному порядку сортування
+            // Крок 2: Збираємо ID відібраних постів
             var postIds = metadata.Select(x => x.PostId).ToList();
 
-            // Крок 3: Витягуємо готові DTO прямо з бази через твоє розширення ProjectToPostDto()
-            // Жодного мапінгу в пам'яті C# — EF Core виконає це через чистий SQL JOIN
+            // Крок 3: Витягуємо готові DTO прямо з бази 
             var dtos = await _context.Posts
                 .AsNoTracking()
                 .Where(p => postIds.Contains(p.Id))
                 .ProjectToPostDto()
                 .ToListAsync();
 
-            // Сортуємо отримані DTO, щоб повернути їх фронтенду в тому порядку пріоритетів, який визначив алгоритм
+            // Сортуємо DTO
             var feedDtos = postIds
                 .Select(id => dtos.First(d => d.PostId == id))
                 .ToList();
 
-            // Крок 4: Динамічно оновлюємо рейтинги переглядів у базі даних
+            // Крок 4: Динамічно оновлюємо рейтинги переглядів
             var postsToUpdate = new List<PostReaction>();
             var postsToAdd = new List<PostReaction>();
 
