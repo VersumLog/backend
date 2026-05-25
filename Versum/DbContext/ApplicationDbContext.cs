@@ -18,6 +18,7 @@ namespace Versum.Context
         public DbSet<Follow> Follows { get; set; } = null!;
         public DbSet<Dictionary> Dictionary { get; set; } = null!;
         public DbSet<Savings> Savings { get; set; } = null!;
+        public DbSet<Notification> Notifications { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
 
@@ -60,7 +61,7 @@ namespace Versum.Context
             });
 
             modelBuilder.Entity<Dictionary>()
-           .HasIndex(d => new { d.UserId, d.Phrase })
+           .HasIndex(d => new { d.UserId, d.PostId, d.AnchorId })
            .IsUnique();
 
            modelBuilder.Entity<Savings>()
