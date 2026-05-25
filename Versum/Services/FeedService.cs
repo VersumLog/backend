@@ -1,4 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using Versum.Context;
 using Versum.Dtos;
 using Versum.Extensions;
@@ -10,66 +14,96 @@ namespace Versum.Services
     {
         private readonly ApplicationDbContext _context;
 
+        // Константа стартового пріоритету для нових творів
+        private const float BASE_PRIORITY = 100.0f;
+        // Бонусні бали, якщо автор у підписках
+        private const float FOLLOW_BONUS = 20.0f;
+        // Штраф за кожен новий перегляд
+        private const float VIEW_PENALTY = 10.0f;
+
         public FeedService(ApplicationDbContext context)
         {
             _context = context;
         }
 
-        public async Task<List<PostGetDto>> GetSmartFeedAsync(int currentUserId, int limit = 20)
+        public async Task<List<PostGetDto>> GetSmartFeedAsync(int currentUserId, int limit = 20, int skip = 0)
         {
-            var feed = await _context.Posts
+            // Крок 1: Отримуємо тільки метадані (ID, реакцію та статус підписки)
+            // Запит залишається дуже легким, бо база не витягує тексти та великі об'єкти
+            var metadata = await _context.Posts
                 .AsNoTracking()
-                .Include(p => p.Author)
-                    .ThenInclude(a => a.User)
-                        .ThenInclude(u => u.Profile)
-                .Include(p => p.Genres)
                 .OnlyPublished()
-                .Where(p => _context.Follows.Any(f => f.FollowerId == currentUserId && f.FollowingId == p.AuthorId))
-                .Where(p => !_context.PostReactions.Any(pr => pr.PostId == p.Id && pr.UserId == currentUserId))
-                .OrderByDescending(p => p.CreatedAt)
+                .Select(p => new
+                {
+                    PostId = p.Id,
+                    Reaction = _context.PostReactions.FirstOrDefault(pr => pr.PostId == p.Id && pr.UserId == currentUserId),
+                    IsFollowed = _context.Follows.Any(f => f.FollowerId == currentUserId && f.FollowingId == p.AuthorId),
+                    CreatedAt = p.CreatedAt
+                })
+                .OrderByDescending(x => x.Reaction != null
+                    ? x.Reaction.PriorityScore
+                    : (BASE_PRIORITY + (x.IsFollowed ? FOLLOW_BONUS : 0.0f)))
+                .ThenByDescending(x => x.CreatedAt)
+                .Skip(skip)
                 .Take(limit)
+                .ToListAsync();
+
+            if (!metadata.Any())
+            {
+                return new List<PostGetDto>();
+            }
+
+            // Крок 2: Збираємо ID відібраних постів у правильному порядку сортування
+            var postIds = metadata.Select(x => x.PostId).ToList();
+
+            // Крок 3: Витягуємо готові DTO прямо з бази через твоє розширення ProjectToPostDto()
+            // Жодного мапінгу в пам'яті C# — EF Core виконає це через чистий SQL JOIN
+            var dtos = await _context.Posts
+                .AsNoTracking()
+                .Where(p => postIds.Contains(p.Id))
                 .ProjectToPostDto()
                 .ToListAsync();
 
-            if (feed.Count < limit)
+            // Сортуємо отримані DTO, щоб повернути їх фронтенду в тому порядку пріоритетів, який визначив алгоритм
+            var feedDtos = postIds
+                .Select(id => dtos.First(d => d.PostId == id))
+                .ToList();
+
+            // Крок 4: Динамічно оновлюємо рейтинги переглядів у базі даних
+            var postsToUpdate = new List<PostReaction>();
+            var postsToAdd = new List<PostReaction>();
+
+            foreach (var item in metadata)
             {
-                int remainingCount = limit - feed.Count;
-
-                var existingIds = feed.Select(p => p.PostId).ToList();
-
-                var globalTrendingPosts = await _context.Posts
-                    .AsNoTracking()
-                    .Include(p => p.Author)
-                        .ThenInclude(a => a.User)
-                            .ThenInclude(u => u.Profile)
-                    .Include(p => p.Genres)
-                    .OnlyPublished()
-                    .Where(p => !existingIds.Contains(p.Id))
-                    .Where(p => !_context.PostReactions.Any(pr => pr.PostId == p.Id && pr.UserId == currentUserId))
-                    .OrderByDescending(p => p.CreatedAt)
-                    .Take(remainingCount)
-                    .ProjectToPostDto()
-                    .ToListAsync();
-
-                feed.AddRange(globalTrendingPosts);
-            }
-
-            // Записуємо "Перегляди" для всіх відібраних постів
-            if (feed.Any())
-            {
-                var viewsToSave = feed.Select(dto => new PostReaction
+                if (item.Reaction == null)
                 {
-                    UserId = currentUserId,
-                    PostId = dto.PostId,
-                    Type = ReactionType.View,
-                    ReactedAt = DateTime.UtcNow
-                }).ToList();
+                    float initialScore = BASE_PRIORITY + (item.IsFollowed ? FOLLOW_BONUS : 0.0f);
 
-                _context.PostReactions.AddRange(viewsToSave);
-                await _context.SaveChangesAsync();
+                    postsToAdd.Add(new PostReaction
+                    {
+                        UserId = currentUserId,
+                        PostId = item.PostId,
+                        ViewCount = 1,
+                        PriorityScore = initialScore - VIEW_PENALTY,
+                        LastInteractedAt = DateTime.UtcNow
+                    });
+                }
+                else
+                {
+                    item.Reaction.ViewCount += 1;
+                    item.Reaction.PriorityScore -= VIEW_PENALTY;
+                    item.Reaction.LastInteractedAt = DateTime.UtcNow;
+
+                    postsToUpdate.Add(item.Reaction);
+                }
             }
 
-            return feed;
+            if (postsToAdd.Any()) _context.PostReactions.AddRange(postsToAdd);
+            if (postsToUpdate.Any()) _context.PostReactions.UpdateRange(postsToUpdate);
+
+            await _context.SaveChangesAsync();
+
+            return feedDtos;
         }
     }
 }

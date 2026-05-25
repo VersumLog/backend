@@ -67,7 +67,8 @@ namespace Versum.Context
             {
                 entity.HasKey(pr => pr.Id);
 
-                entity.HasIndex(pr => new { pr.UserId, pr.PostId, pr.Type }).IsUnique();
+                // ЗМІНЕНО: тепер один юзер може мати лише один рядок взаємодії з одним конкретним постом
+                entity.HasIndex(pr => new { pr.UserId, pr.PostId }).IsUnique();
 
                 entity.HasOne(pr => pr.User)
                     .WithMany()
