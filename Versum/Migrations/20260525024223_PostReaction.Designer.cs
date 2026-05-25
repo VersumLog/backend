@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Versum.Context;
@@ -11,9 +12,11 @@ using Versum.Context;
 namespace Versum.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260525024223_PostReaction")]
+    partial class PostReaction
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -67,40 +70,6 @@ namespace Versum.Migrations
                     b.HasKey("AuthorId");
 
                     b.ToTable("Authors");
-                });
-
-            modelBuilder.Entity("Versum.Models.Comment", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasMaxLength(2000)
-                        .HasColumnType("character varying(2000)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
-
-                    b.Property<int>("PostId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PostId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Comments");
                 });
 
             modelBuilder.Entity("Versum.Models.Dictionary", b =>
@@ -171,30 +140,6 @@ namespace Versum.Migrations
                     b.ToTable("Follows");
                 });
 
-            modelBuilder.Entity("Versum.Models.Like", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("PostId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PostId");
-
-                    b.HasIndex("UserId", "PostId")
-                        .IsUnique();
-
-                    b.ToTable("Likes");
-                });
-
             modelBuilder.Entity("Versum.Models.Notification", b =>
                 {
                     b.Property<int>("Id")
@@ -237,52 +182,26 @@ namespace Versum.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<bool>("IsLiked")
-                        .HasColumnType("boolean");
-
-                    b.Property<DateTime>("LastInteractedAt")
-                        .HasColumnType("timestamp with time zone");
-
                     b.Property<int>("PostId")
                         .HasColumnType("integer");
 
-                    b.Property<float>("PriorityScore")
-                        .HasColumnType("real");
+                    b.Property<DateTime>("ReactedAt")
+                        .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("UserId")
+                    b.Property<int>("Type")
                         .HasColumnType("integer");
 
-                    b.Property<int>("ViewCount")
+                    b.Property<int>("UserId")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
 
                     b.HasIndex("PostId");
 
-                    b.HasIndex("UserId", "PostId")
+                    b.HasIndex("UserId", "PostId", "Type")
                         .IsUnique();
 
                     b.ToTable("PostReactions");
-                });
-
-            modelBuilder.Entity("Versum.Models.Savings", b =>
-                {
-                    b.Property<int>("UserId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("PostId")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime>("SavedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("UserId", "PostId");
-
-                    b.HasIndex("PostId");
-
-                    b.HasIndex("UserId", "PostId");
-
-                    b.ToTable("Savings");
                 });
 
             modelBuilder.Entity("Versum.Post", b =>
@@ -294,9 +213,6 @@ namespace Versum.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<int>("AuthorId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("CommentsCount")
                         .HasColumnType("integer");
 
                     b.Property<string>("Content")
@@ -317,9 +233,6 @@ namespace Versum.Migrations
 
                     b.Property<bool>("IsDraft")
                         .HasColumnType("boolean");
-
-                    b.Property<int>("LikesCount")
-                        .HasColumnType("integer");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -451,25 +364,6 @@ namespace Versum.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Versum.Models.Comment", b =>
-                {
-                    b.HasOne("Versum.Post", "Post")
-                        .WithMany("Comments")
-                        .HasForeignKey("PostId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Versum.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Post");
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("Versum.Models.Dictionary", b =>
                 {
                     b.HasOne("Versum.Post", "Post")
@@ -506,45 +400,7 @@ namespace Versum.Migrations
                     b.Navigation("Following");
                 });
 
-            modelBuilder.Entity("Versum.Models.Like", b =>
-                {
-                    b.HasOne("Versum.Post", "Post")
-                        .WithMany("Likes")
-                        .HasForeignKey("PostId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Versum.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Post");
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("Versum.Models.PostReaction", b =>
-                {
-                    b.HasOne("Versum.Post", "Post")
-                        .WithMany()
-                        .HasForeignKey("PostId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Versum.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Post");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("Versum.Models.Savings", b =>
                 {
                     b.HasOne("Versum.Post", "Post")
                         .WithMany()
@@ -592,13 +448,6 @@ namespace Versum.Migrations
             modelBuilder.Entity("Versum.Models.Author", b =>
                 {
                     b.Navigation("Posts");
-                });
-
-            modelBuilder.Entity("Versum.Post", b =>
-                {
-                    b.Navigation("Comments");
-
-                    b.Navigation("Likes");
                 });
 
             modelBuilder.Entity("Versum.User", b =>

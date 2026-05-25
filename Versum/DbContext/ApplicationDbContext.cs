@@ -19,6 +19,8 @@ namespace Versum.Context
         public DbSet<Dictionary> Dictionary { get; set; } = null!;
         public DbSet<Savings> Savings { get; set; } = null!;
         public DbSet<Notification> Notifications { get; set; } = null!;
+        public DbSet<PostReaction> PostReactions { get; set; } = null!;
+
         public DbSet<Like> Likes { get; set; } = null!;
         public DbSet<Comment> Comments { get; set; } = null!;
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -57,8 +59,26 @@ namespace Versum.Context
                     .HasForeignKey(f => f.FollowerId);
 
                 entity.HasOne(f => f.Following)
-                    .WithMany()
+                    .WithMany(u => u.Followers)
                     .HasForeignKey(f => f.FollowingId);
+            });
+
+            modelBuilder.Entity<PostReaction>(entity =>
+            {
+                entity.HasKey(pr => pr.Id);
+
+                // ЗМІНЕНО: тепер один юзер може мати лише один рядок взаємодії з одним конкретним постом
+                entity.HasIndex(pr => new { pr.UserId, pr.PostId }).IsUnique();
+
+                entity.HasOne(pr => pr.User)
+                    .WithMany()
+                    .HasForeignKey(pr => pr.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(pr => pr.Post)
+                    .WithMany()
+                    .HasForeignKey(pr => pr.PostId)
+                    .OnDelete(DeleteBehavior.Cascade);
             });
 
             modelBuilder.Entity<Dictionary>()

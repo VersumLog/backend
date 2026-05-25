@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Versum.Context;
@@ -11,9 +12,11 @@ using Versum.Context;
 namespace Versum.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260525154409_Merge 2")]
+    partial class Merge2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -237,29 +240,23 @@ namespace Versum.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<bool>("IsLiked")
-                        .HasColumnType("boolean");
-
-                    b.Property<DateTime>("LastInteractedAt")
-                        .HasColumnType("timestamp with time zone");
-
                     b.Property<int>("PostId")
                         .HasColumnType("integer");
 
-                    b.Property<float>("PriorityScore")
-                        .HasColumnType("real");
+                    b.Property<DateTime>("ReactedAt")
+                        .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("UserId")
+                    b.Property<int>("Type")
                         .HasColumnType("integer");
 
-                    b.Property<int>("ViewCount")
+                    b.Property<int>("UserId")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
 
                     b.HasIndex("PostId");
 
-                    b.HasIndex("UserId", "PostId")
+                    b.HasIndex("UserId", "PostId", "Type")
                         .IsUnique();
 
                     b.ToTable("PostReactions");
