@@ -189,5 +189,38 @@ namespace Versum.Services
         {
             return await _db.Genres.Select(g => g.Name).ToListAsync();
         }
+        public async Task<(bool Success, string? Error)> AddGenreAsync(string genreName)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(genreName))
+                    return (false, "Назва жанру не може бути порожньою");
+
+                if (genreName.Length > 50)
+                    return (false, "Назва жанру не може перевищувати 50 символів");
+
+                // Перевіряємо, чи вже існує такий жанр (ігноруючи регістр)
+                var exists = await _db.Genres
+                    .AnyAsync(g => g.Name.ToLower() == genreName.ToLower());
+
+                if (exists)
+                    return (false, "Такий жанр вже існує");
+
+                var newGenre = new Genre
+                {
+                    Name = genreName.Trim()
+                };
+
+                _db.Genres.Add(newGenre);
+                await _db.SaveChangesAsync();
+
+                return (true, null);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"AddGenreAsync error: {ex.Message}");
+                return (false, "ServerError");
+            }
+        }
     }
 }

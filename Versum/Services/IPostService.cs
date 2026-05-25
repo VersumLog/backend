@@ -13,5 +13,6 @@ namespace Versum.Services
         Task<(bool Success, string? Error, int? PostId)> CreateDraftAsync(int authorId, CreateDraftDto dto);
         Task<(bool Success, string? Error)> UpdateDraftAsync(int postId, int userId, PostDto dto);
         Task<List<string>> GetGenresAsync();
+        Task<(bool Success, string? Error)> AddGenreAsync(string genreName);
     }
 }
