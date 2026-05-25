@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Versum.Context;
@@ -11,9 +12,11 @@ using Versum.Context;
 namespace Versum.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260524214454_AddLikesAndComments")]
+    partial class AddLikesAndComments
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -176,24 +179,6 @@ namespace Versum.Migrations
                     b.ToTable("Follows");
                 });
 
-            modelBuilder.Entity("Versum.Models.Savings", b =>
-                {
-                    b.Property<int>("UserId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("PostId")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime>("SavedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("UserId", "PostId");
-
-                    b.HasIndex("PostId");
-
-                    b.HasIndex("UserId", "PostId");
-
-                    b.ToTable("Savings");
             modelBuilder.Entity("Versum.Models.Like", b =>
                 {
                     b.Property<int>("Id")
@@ -477,10 +462,6 @@ namespace Versum.Migrations
                     b.Navigation("Following");
                 });
 
-            modelBuilder.Entity("Versum.Models.Savings", b =>
-                {
-                    b.HasOne("Versum.Post", "Post")
-                        .WithMany()
             modelBuilder.Entity("Versum.Models.Like", b =>
                 {
                     b.HasOne("Versum.Post", "Post")

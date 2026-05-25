@@ -19,7 +19,8 @@ namespace Versum.Context
         public DbSet<Dictionary> Dictionary { get; set; } = null!;
         public DbSet<Savings> Savings { get; set; } = null!;
         public DbSet<Notification> Notifications { get; set; } = null!;
-
+        public DbSet<Like> Likes { get; set; } = null!;
+        public DbSet<Comment> Comments { get; set; } = null!;
         protected override void OnModelCreating(ModelBuilder modelBuilder)
 
         {
@@ -69,6 +70,33 @@ namespace Versum.Context
 
             modelBuilder.Entity<Savings>()
         .HasIndex(s => new { s.UserId, s.PostId });
+            modelBuilder.Entity<Like>()
+            .HasIndex(l => new { l.UserId, l.PostId })
+            .IsUnique(); 
+
+            modelBuilder.Entity<Like>()
+                .HasOne(l => l.Post)
+                .WithMany(p => p.Likes)
+                .HasForeignKey(l => l.PostId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Like>()
+                .HasOne(l => l.User)
+                .WithMany()
+                .HasForeignKey(l => l.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Comment>()
+                .HasOne(c => c.Post)
+                .WithMany(p => p.Comments)
+                .HasForeignKey(c => c.PostId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Comment>()
+                .HasOne(c => c.User)
+                .WithMany()
+                .HasForeignKey(c => c.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }
