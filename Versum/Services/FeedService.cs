@@ -19,18 +19,32 @@ namespace Versum.Services
             _context = context;
         }
 
-        public async Task<List<PostGetDto>> GetSmartFeedAsync(int currentUserId, int limit = 20, int skip = 0)
+        public async Task<List<PostGetDto>> GetSmartFeedAsync(int? currentUserId, int limit = 20, int skip = 0)
         {
-            // Крок 1: Отримуємо тільки метадані 
+            // ЛОГІКА ДЛЯ ГОСТЕЙ
+            if (!currentUserId.HasValue)
+            {
+                return await _context.Posts
+                    .AsNoTracking()
+                    .OnlyPublished()
+                    .OrderByDescending(p => p.CreatedAt)
+                    .Skip(skip)
+                    .Take(limit)
+                    .ProjectToPostDto(currentUserId)
+                    .ToListAsync();
+            }
+            // ЛОГІКА ДЛЯ ЗАРЕЄСТРОВАНИХ
+            int userId = currentUserId.Value;
+
             var metadata = await _context.Posts
                 .AsNoTracking()
                 .OnlyPublished()
-                .Where(p => p.AuthorId != currentUserId) // ВАЖЛИВО: Виключаємо власні твори користувача з рекомендацій
+                .Where(p => p.AuthorId != userId)
                 .Select(p => new
                 {
                     PostId = p.Id,
-                    Reaction = _context.PostReactions.FirstOrDefault(pr => pr.PostId == p.Id && pr.UserId == currentUserId),
-                    IsFollowed = _context.Follows.Any(f => f.FollowerId == currentUserId && f.FollowingId == p.AuthorId),
+                    Reaction = _context.PostReactions.FirstOrDefault(pr => pr.PostId == p.Id && pr.UserId == userId),
+                    IsFollowed = _context.Follows.Any(f => f.FollowerId == userId && f.FollowingId == p.AuthorId),
                     CreatedAt = p.CreatedAt
                 })
                 .OrderByDescending(x => x.Reaction != null
@@ -46,22 +60,18 @@ namespace Versum.Services
                 return new List<PostGetDto>();
             }
 
-            // Крок 2: Збираємо ID відібраних постів
             var postIds = metadata.Select(x => x.PostId).ToList();
 
-            // Крок 3: Витягуємо готові DTO прямо з бази 
             var dtos = await _context.Posts
                 .AsNoTracking()
                 .Where(p => postIds.Contains(p.Id))
                 .ProjectToPostDto(currentUserId)
                 .ToListAsync();
 
-            // Сортуємо DTO
             var feedDtos = postIds
                 .Select(id => dtos.First(d => d.PostId == id))
                 .ToList();
 
-            // Крок 4: Динамічно оновлюємо рейтинги переглядів
             var postsToUpdate = new List<PostReaction>();
             var postsToAdd = new List<PostReaction>();
 
@@ -73,7 +83,7 @@ namespace Versum.Services
 
                     postsToAdd.Add(new PostReaction
                     {
-                        UserId = currentUserId,
+                        UserId = userId,
                         PostId = item.PostId,
                         ViewCount = 1,
                         PriorityScore = initialScore - VIEW_PENALTY,

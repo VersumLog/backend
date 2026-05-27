@@ -18,13 +18,19 @@ namespace Versum.Controllers
             _feedService = feedService;
         }
 
+        [AllowAnonymous]
         [HttpGet]
         public async Task<ActionResult<List<PostGetDto>>> GetFeed([FromQuery] int limit = 20)
         {
-            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (!int.TryParse(userIdClaim, out int currentUserId))
+            int? currentUserId = null;
+
+            if (User.Identity != null && User.Identity.IsAuthenticated)
             {
-                return Unauthorized();
+                var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (int.TryParse(userIdClaim, out int parsedId))
+                {
+                    currentUserId = parsedId;
+                }
             }
 
             var feed = await _feedService.GetSmartFeedAsync(currentUserId, limit);
