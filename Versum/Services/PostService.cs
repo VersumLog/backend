@@ -1,0 +1,232 @@
+﻿using Ganss.Xss;
+using Microsoft.EntityFrameworkCore;
+using Versum.Context;
+using Versum.Dtos;
+using Versum.Extensions;
+using Versum.Models;
+
+namespace Versum.Services
+{
+    public class PostService : IPostService
+    {
+
+        private readonly ApplicationDbContext _db;
+        private readonly IProfileService _profileService;
+        private readonly INotificationService _notificationService;
+
+        public PostService(ApplicationDbContext db, IProfileService profileService, INotificationService notificationService)
+        {
+            _db = db;
+            _profileService = profileService;
+            _notificationService = notificationService;
+        }
+
+
+        public async Task<(bool Success, string? Error)> PublishDraftAsync(int postId, int userId)
+        {
+            try
+            {
+
+                var post = await _db.Posts.FirstOrDefaultAsync(p => p.Id == postId);
+
+                if (post == null) return (false, "PostNotFound");
+
+                if (post.AuthorId != userId) return (false, "YouAreNotAnOwnerOfDraft");
+
+                if (!post.IsDraft) return (false, "AlreadyPublished");
+
+             
+                if (string.IsNullOrWhiteSpace(post.Title)) return (false, "TitleRequired");
+
+                if (string.IsNullOrWhiteSpace(post.Description)) return (false, "DescriptionRequired");
+
+                if (string.IsNullOrWhiteSpace(post.Content)) return (false, "ContentRequired");
+
+
+                post.IsDraft = false;
+
+                await _db.SaveChangesAsync();
+
+                try
+                {
+                    var username = await _profileService.GetUsernameByUserIdAsync(userId) ?? "Хтось";
+                    await _notificationService.NotifyFollowersAboutPublishingAsync(userId, username, post.Title);
+                }
+                catch (Exception notifEx)
+                {
+                    Console.WriteLine($"Notification failed: {notifEx.Message}");
+                }
+
+                return (true, null);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"PublishDraftAsync error: {ex.Message}");
+                return (false, "ServerError");
+            }
+        }
+
+        public async Task<(bool Success, string? Error, int? PostId)> CreateDraftAsync(int authorId, CreateDraftDto dto)
+        {
+            try
+            {
+                var author = await _db.Authors.FirstOrDefaultAsync(a => a.AuthorId == authorId);
+                if (author == null) return (false, "AuthorNotFound", null);
+
+                var draftPost = new Post
+                {
+                    Title = dto.Title,
+                    AuthorId = authorId,
+                    IsDraft = true,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                _db.Posts.Add(draftPost);
+                await _db.SaveChangesAsync();
+
+                return (true, null, draftPost.Id);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"CreateDraftAsync error: {ex.Message}");
+                return (false, "ServerError", null);
+            }
+        }
+
+
+        //consider combining onto one GetUserPosts
+        //---CRITICAL: Post content is sent every time, though it is not needed. Reminder: Content can have up to 500k letters...
+        public async Task<List<PostGetDto>?> GetUserDraftsAsync(int authorId, PostQueryDto query)
+        {
+            return await _db.Posts
+                .AsNoTracking()
+                .Where(p => p.AuthorId == authorId)
+                .OnlyDrafts()
+                .ApplySorting(query.Filter, query.Ascending)
+                .ProjectToPostDto(authorId)
+                .ToListAsync();
+        }
+
+        public async Task<List<PostGetDto>?> GetUserPostsAsync(int authorId, PostQueryDto query)
+        {
+            return await _db.Posts
+                .AsNoTracking()
+                .Where(p => p.AuthorId == authorId)
+                .OnlyPublished()
+                .ApplySorting(query.Filter, query.Ascending)
+                .ProjectToPostDto(authorId)
+                .ToListAsync();
+        }
+
+        public async Task<(PostGetDto?, string? Error)> GetPostAsync(int postId, int? userID)
+        {
+            var postDto = await _db.Posts
+                .AsNoTracking()
+                .Where(p => p.Id == postId
+                         && !p.IsDeleted
+                         && (!p.IsDraft || p.AuthorId == userID))
+                .ProjectToPostDto(userID)
+                .FirstOrDefaultAsync();
+
+            if (postDto == null)
+            {
+                return (null, "Твір не знайдено або він ще не опублікований");
+            }
+
+            return (postDto, null);
+        }
+
+        public async Task<(bool Success, string? Error)> UpdateDraftAsync(int postId,int userId, PostDto dto)
+        {
+            try
+            {
+                var draft = await _db.Posts
+                .Include(p => p.Genres)
+                .FirstOrDefaultAsync(p => p.Id == postId);
+
+                if (draft == null) return (false, "DraftNotFound");
+                if (draft.IsDraft == false) return (false, "You can't edit published writings");
+                if (draft.AuthorId != userId) return (false, "YouAreNotAnOwnerOfDraft");
+
+                var sanitizer = new HtmlSanitizer();
+                sanitizer.AllowedAttributes.Add("data-description");
+                sanitizer.AllowedAttributes.Add("class");
+                sanitizer.AllowedAttributes.Add("id");
+
+                draft.Title = dto.Title;
+                draft.Description = dto.Description;
+                draft.Content = sanitizer.Sanitize(dto.Content);
+                draft.Genres = _db.Genres.Where(g => dto.Genres.Contains(g.Name)).ToList();
+
+                await _db.SaveChangesAsync();
+                return (true, null);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"UpdateDraftAsync error: {ex.Message}");
+                return (false, "ServerError");
+            }
+
+        }
+
+        public async Task<(bool Success, string? Error)> DeletePostAsync(int userId, int postId)
+        {
+
+            var post = await _db.Posts.FirstOrDefaultAsync(p => p.Id == postId && p.AuthorId == userId && !p.IsDeleted);
+
+            if (post == null) return (false, "PostNotFound");
+
+            post.IsDeleted = true;
+
+            try
+            {
+
+                await _db.SaveChangesAsync();
+                return (true, null);
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"DeletePostAsync error: {ex.Message}");
+                return (false, "ServerError");
+            }
+        }
+        public async Task<List<string>> GetGenresAsync()
+        {
+            return await _db.Genres.Select(g => g.Name).ToListAsync();
+        }
+        public async Task<(bool Success, string? Error)> AddGenreAsync(string genreName)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(genreName))
+                    return (false, "Назва жанру не може бути порожньою");
+
+                if (genreName.Length > 50)
+                    return (false, "Назва жанру не може перевищувати 50 символів");
+
+                // Перевіряємо, чи вже існує такий жанр (ігноруючи регістр)
+                var exists = await _db.Genres
+                    .AnyAsync(g => g.Name.ToLower() == genreName.ToLower());
+
+                if (exists)
+                    return (false, "Такий жанр вже існує");
+
+                var newGenre = new Genre
+                {
+                    Name = genreName.Trim()
+                };
+
+                _db.Genres.Add(newGenre);
+                await _db.SaveChangesAsync();
+
+                return (true, null);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"AddGenreAsync error: {ex.Message}");
+                return (false, "ServerError");
+            }
+        }
+    }
+}

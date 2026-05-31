@@ -3,6 +3,12 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/main/VisualStudio.gitignore
 
+
+appsettings.Development.json
+appsettings.Local.json
+UserSecrets/
+
+
 # User-specific files
 *.rsuser
 *.suo
@@ -416,3 +422,12 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+
+# Postman
+*.postman_environment.json
+*.postman_globals.json
+
+# Postman local settings and metadata
+.postman/
+postman/
+*.yaml
