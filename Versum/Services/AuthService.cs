@@ -21,15 +21,18 @@ namespace Versum.Services
             _emailService = emailService;
             _configuration = configuration;
         }
-        public async Task<(bool Success, string? Error, string? Field)> RegisterAsync(RegisterDto dto)
-        {
+        public async Task<(bool Success, string? tokenOrError, string? Field)> RegisterAsync(RegisterDto dto)
+        {   
+            dto.Username = dto.Username.ToLower();
+            dto.Email = dto.Email.ToLower();
+
             bool usernameExists = await _db.Users.AnyAsync(u => u.Username == dto.Username);
             bool emailExists = await _db.Users.AnyAsync(e => e.Email == dto.Email);
 
             if (usernameExists)
                 return (false, "Цей нікнейм вже існує", "username");
             if (emailExists)
-                return (false, "Цей імейл вже існує", "email");
+                return (false, "Цей емейл вже існує", "email");
 
 
             string passwordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
@@ -64,7 +67,7 @@ namespace Versum.Services
 
             };
 
-            _db.Users.Add(user);
+            var addedUser = _db.Users.Add(user);
             await _db.SaveChangesAsync();
 
 
@@ -79,9 +82,10 @@ namespace Versum.Services
             await _emailService.SendEmailAsync(dto.Email, "Підтвердження реєстрації — Versum", htmlBody);
 
 
-            return (true, null, null);
+            string jwtToken = GenerateJwtToken(addedUser.Entity);
 
 
+            return (true, jwtToken, null);
         }
 
         public async Task<(bool success, string? error)> ConfirmEmailAsync(string token)
@@ -112,6 +116,7 @@ namespace Versum.Services
         }
         public async Task<(bool success, string tokenOrError, string userGmail, string username)> LoginAsync(LoginDto dto)
         {
+            dto.UsernameOrGmail = dto.UsernameOrGmail.ToLower();
 
             var user = await _db.Users.FirstOrDefaultAsync(u =>
                 u.Email == dto.UsernameOrGmail || u.Username == dto.UsernameOrGmail);
@@ -142,19 +147,19 @@ namespace Versum.Services
         {
             var claims = new[]
             {
-        new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()), // currentUserId
-        new Claim(ClaimTypes.Name, user.Username),
-        new Claim(ClaimTypes.Email, user.Email)
-    };
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()), // currentUserId
+                new Claim(ClaimTypes.Name, user.Username),
+                new Claim(ClaimTypes.Email, user.Email)
+            };
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var token = new JwtSecurityToken(
                 issuer: _configuration["Jwt:Issuer"],
                 audience: _configuration["Jwt:Audience"],
                 claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(double.Parse(_configuration["Jwt:ExpireMinutes"])),
+                expires: DateTime.UtcNow.AddMinutes(double.Parse(_configuration["Jwt:ExpireMinutes"]!)),
                 signingCredentials: creds
             );
 
@@ -162,6 +167,7 @@ namespace Versum.Services
         }
         public async Task<(bool success, string? error)> ForgotPasswordAsync(ForgotPasswordDto dto)
         {
+            dto.Email = dto.Email.ToLower();
             var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == dto.Email);
             if (user == null)
             {
@@ -188,6 +194,7 @@ namespace Versum.Services
 
         public async Task<(bool success, string? error)> ResetPasswordAsync(ResetPasswordDto dto)
         {
+            dto.Email = dto.Email.ToLower();
             var user = await _db.Users.FirstOrDefaultAsync(
                 u => u.Email == dto.Email
                 && u.PasswordResetToken == dto.Token
@@ -222,6 +229,7 @@ namespace Versum.Services
 
         public async Task<(bool success, string? error)> ResetPasswordTokenCheckAsync(ResetPasswordTokenDto dto)
         {
+            dto.Email = dto.Email.ToLower();
             var user = await _db.Users.FirstOrDefaultAsync(
                 u => u.Email == dto.Email
                 && u.PasswordResetToken == dto.Token
@@ -237,6 +245,5 @@ namespace Versum.Services
             return (true, null);
 
         }
-
     }
 }

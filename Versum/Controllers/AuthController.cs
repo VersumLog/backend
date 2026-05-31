@@ -34,7 +34,7 @@ namespace Versum.Controllers
             if (!success)
                 return Conflict(new { field, message = error }); //checks if data for transfer does not cause conflicts(error 409)
 
-            return Ok(new { message = "Реєстрація успішна! Перевірте пошту для підтвердження." });
+            return Ok(new { token = error, message = "Реєстрація успішна! Перевірте пошту для підтвердження." });
 
         }
 

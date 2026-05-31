@@ -25,7 +25,7 @@ namespace Versum.Services
             .FirstOrDefaultAsync(u => u.Id == UserId);
             if (user == null)
             {
-                return (false, "Чому нас вважають за одну людину?");
+                return (false, "Чому нас вважають однією людиною?");
             }
 
             bool usernameExists = await _db.Users.AnyAsync(u => u.Username == dto.Username);
@@ -109,7 +109,7 @@ namespace Versum.Services
             var shortGuid = Guid.NewGuid().ToString("N").Substring(0, 8);
 
             user.Email = $"del_{shortGuid}@anon.com"; // Близько 21 символу
-            user.Username = $"anon_{shortGuid}";      // 13 символів
+            user.Username = $"deleted_{shortGuid}";      // 13 символів
             user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(Guid.NewGuid().ToString());
             user.IsDeleted = true;
 
@@ -163,7 +163,6 @@ namespace Versum.Services
             var existingFollow = await _db.Follows
                 .FirstOrDefaultAsync(f => f.FollowerId == followerId && f.FollowingId == followingId);
 
-            bool isFollowed = false; 
 
             if (existingFollow != null)
             {
@@ -172,12 +171,8 @@ namespace Versum.Services
             else
             {
                 _db.Follows.Add(new Follow { FollowerId = followerId, FollowingId = followingId });
-                isFollowed = true; //sub
-            }
 
-            //notification
-            if (isFollowed)
-            {
+                //Notification
                 var username = await GetUsernameByUserIdAsync(followerId);
                 await _notificationService.SendFollowNotificationAsync(followingId, username ?? "Хтось");
             }
@@ -208,6 +203,5 @@ namespace Versum.Services
                 .ToListAsync();
         }
     }
-
 }
 

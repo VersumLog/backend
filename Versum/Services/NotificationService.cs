@@ -39,6 +39,76 @@ namespace Versum.Services
                 .SendAsync("ReceiveNotification", notification.NotificationToDto());
         }
 
+        public async Task SendLikeNotificationAsync(int targetUserId, string actorUsername, string postName)
+        {
+            var notification = new Notification
+            {
+                TargetUserId = targetUserId,
+                Type = "Like",
+                Message = $"{actorUsername} уподобав ваш твір: \"{postName}\".",
+                ActorUsername = actorUsername,
+                IsRead = false,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _db.Notifications.Add(notification);
+            await _db.SaveChangesAsync();
+
+            await _hubContext.Clients.User(targetUserId.ToString())
+                .SendAsync("ReceiveNotification", notification.NotificationToDto());
+        }
+        public async Task SendCommentNotificationAsync(int targetUserId, string actorUsername, string postName)
+        {
+            var notification = new Notification
+            {
+                TargetUserId = targetUserId,
+                Type = "Comment",
+                Message = $"{actorUsername} прокоментував ваш твір: \"{postName}\".",
+                ActorUsername = actorUsername,
+                IsRead = false,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _db.Notifications.Add(notification);
+            await _db.SaveChangesAsync();
+
+            await _hubContext.Clients.User(targetUserId.ToString())
+                .SendAsync("ReceiveNotification", notification.NotificationToDto());
+        }
+
+        public async Task NotifyFollowersAboutPublishingAsync(int authorId, string actorUsername, string postName)
+        {
+            var followers = await _db.Follows
+                .Where(f => f.Following.Id == authorId)
+                .Select(f => f.Id)
+                .ToListAsync();
+
+            if (!followers.Any()) return;
+            foreach (var followerId in followers)
+            {
+                await SendNewPostNotificationAsync(followerId, actorUsername, postName);
+            }
+        }
+
+        public async Task SendNewPostNotificationAsync(int targetUserId, string actorUsername, string postName)
+        {
+            var notification = new Notification
+            {
+                TargetUserId = targetUserId,
+                Type = "NewPost",
+                Message = $"{actorUsername} написав новий твір: \"{postName}\".",
+                ActorUsername = actorUsername,
+                IsRead = false,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _db.Notifications.Add(notification);
+            await _db.SaveChangesAsync();
+
+            await _hubContext.Clients.User(targetUserId.ToString())
+                .SendAsync("ReceiveNotification", notification.NotificationToDto());
+        }
+
         public async Task<List<NotificationDto>?> GetNotificationsAsync(int userId)
         {
             return await _db.Notifications
