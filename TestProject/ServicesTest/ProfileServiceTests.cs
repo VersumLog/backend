@@ -157,7 +157,7 @@ namespace VersumTestProject.ServicesTest
 
             // Assert
             Assert.False(success);
-            Assert.Equal("Чому нас вважають за одну людину?", error);
+            Assert.Equal("Чому нас вважають однією людиною?", error);
         }
 
         [Fact]

@@ -37,16 +37,27 @@ namespace VersumTestProject.ServicesTest
                 .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString()).Options;
 
             _emailServiceMock = new Mock<IEmailService>();
-            _configurationMock = new Mock<IConfiguration>();
-            _configurationMock.Setup(c => c["AppSettings:BaseUrl"]).Returns("https://localhost:7014");
-
             _context = new ApplicationDbContext(options);
-            _authService = new AuthService(_context, _emailServiceMock.Object, _configurationMock.Object);
             _assertContext = new ApplicationDbContext(options);
 
+            // 1. Створюємо єдину правильну конфігурацію
+            var myConfiguration = new Dictionary<string, string>
+            {
+                {"AppSettings:BaseUrl", "https://localhost:7014"},
+                {"Jwt:Key", "SuperSecretKeyForTestingPurposesThatIsLongEnough!!"},
+                {"Jwt:Issuer", "TestIssuer"},
+                {"Jwt:Audience", "TestAudience"},
+                {"Jwt:ExpireMinutes", "1440"}
+            };
+
+            var configuration = new ConfigurationBuilder()
+                .AddInMemoryCollection(myConfiguration)
+                .Build();
+
+            // 2. Ініціалізуємо сервіс ТІЛЬКИ ОДИН РАЗ
+            _authService = new AuthService(_context, _emailServiceMock.Object, configuration);
 
             TemporaryTemplate();
-
         }
         private void TemporaryTemplate()
         {
@@ -90,11 +101,11 @@ namespace VersumTestProject.ServicesTest
             var dto = new RegisterDto { Username = TestUsername, Email = TestEmail, Password = TestPassword };
 
             // Act
-            var (success, error, field) = await _authService.RegisterAsync(dto);
+            var (success, token, field) = await _authService.RegisterAsync(dto);
 
             // Assert
             Assert.True(success);
-            Assert.Null(error);
+            Assert.NotNull(token);
             Assert.Null(field);
 
             // checks if user is saved in database
@@ -156,7 +167,7 @@ namespace VersumTestProject.ServicesTest
 
             // Assert
             Assert.False(success);
-            Assert.Equal("Цей імейл вже існує", error);
+            Assert.Equal("Цей емейл вже існує", error);
             Assert.Equal("email", field);
         }
 
@@ -197,7 +208,6 @@ namespace VersumTestProject.ServicesTest
             Assert.Null(updatedUser.EmailTokenExpiryDate);
         }
 
-
         [Fact]
         public async Task ConfirmEmailAsync_WithInvalidToken_ReturnsFalseAndError()
         {
@@ -219,10 +229,8 @@ namespace VersumTestProject.ServicesTest
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
 
-            var authService = new global::Versum.Services.AuthService(_context, _emailServiceMock.Object, _configurationMock.Object);
-
-            // Act
-            var (success, error) = await authService.ConfirmEmailAsync("wrong_token");
+            // Act (використовуємо _authService рівня класу)
+            var (success, error) = await _authService.ConfirmEmailAsync("wrong_token");
 
             // Assert
             Assert.False(success);

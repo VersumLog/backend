@@ -13,6 +13,8 @@ namespace VersumTestProject.ServicesTest
         private readonly ApplicationDbContext _context;
         private readonly ApplicationDbContext _assertContext;
         private readonly PostService _postService;
+        private readonly ProfileService _profileService;
+        private readonly NotificationService _notifitationService;
 
         private const string TestTitle = "title";
         private const string TestDescription = "description";
@@ -28,7 +30,7 @@ namespace VersumTestProject.ServicesTest
                 .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString()).Options;
 
             _context = new ApplicationDbContext(options);
-            _postService = new PostService(_context);
+            _postService = new PostService(_context, _profileService, _notifitationService);
             _assertContext = new ApplicationDbContext(options);
         }
 
@@ -118,7 +120,7 @@ namespace VersumTestProject.ServicesTest
             mockContext.Setup(m => m.SaveChangesAsync(It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new Exception("Database connection failed"));
 
-            var serviceWithMock = new PostService(mockContext.Object);
+            var serviceWithMock = new PostService(mockContext.Object, _profileService, _notifitationService);
             var dto = new CreateDraftDto { Title = "Test Title" };
 
             // 5. Act
@@ -265,7 +267,7 @@ namespace VersumTestProject.ServicesTest
             mockContext.Setup(m => m.SaveChangesAsync(It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new Exception("Database connection failed"));
 
-            var serviceWithMock = new PostService(mockContext.Object);
+            var serviceWithMock = new PostService(mockContext.Object, _profileService, _notifitationService);
             var dto = new PostDto { Title = TestTitle, Description = TestDescription, Content = TestContent };
 
 

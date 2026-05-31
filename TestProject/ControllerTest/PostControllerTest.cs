@@ -300,13 +300,13 @@ namespace VersumTestProject.ControllerTest
 
             // Assert
 
-            var notFoundResult = Assert.IsType<NotFoundObjectResult>(result);
+            var conflictResult = Assert.IsType<ConflictObjectResult>(result);
 
 
-            Assert.Equal(404, notFoundResult.StatusCode);
+            Assert.Equal(409, conflictResult.StatusCode);
 
 
-            var response = notFoundResult.Value;
+            var response = conflictResult.Value;
             var message = response.GetType().GetProperty("message")?.GetValue(response, null);
 
             Assert.Equal("Твір уже опубліковано", message);
