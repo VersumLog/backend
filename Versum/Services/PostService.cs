@@ -1,8 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Ganss.Xss;
+using Microsoft.EntityFrameworkCore;
+using Versum.Context;
 using Versum.Dtos;
 using Versum.Extensions;
-using Versum.Context;
-using Ganss.Xss;
+using Versum.Models;
 
 namespace Versum.Services
 {
@@ -10,10 +11,14 @@ namespace Versum.Services
     {
 
         private readonly ApplicationDbContext _db;
+        private readonly IProfileService _profileService;
+        private readonly INotificationService _notificationService;
 
-        public PostService(ApplicationDbContext db)
+        public PostService(ApplicationDbContext db, IProfileService profileService, INotificationService notificationService)
         {
             _db = db;
+            _profileService = profileService;
+            _notificationService = notificationService;
         }
 
 
@@ -41,6 +46,16 @@ namespace Versum.Services
                 post.IsDraft = false;
 
                 await _db.SaveChangesAsync();
+
+                try
+                {
+                    var username = await _profileService.GetUsernameByUserIdAsync(userId) ?? "Хтось";
+                    await _notificationService.NotifyFollowersAboutPublishingAsync(userId, username, post.Title);
+                }
+                catch (Exception notifEx)
+                {
+                    Console.WriteLine($"Notification failed: {notifEx.Message}");
+                }
 
                 return (true, null);
             }

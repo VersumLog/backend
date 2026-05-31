@@ -2,7 +2,7 @@
 
 public interface IAuthService
 {
-    Task<(bool Success, string? Error, string? Field)> RegisterAsync(RegisterDto dto);
+    Task<(bool Success, string? tokenOrError, string? Field)> RegisterAsync(RegisterDto dto);
     // Method returns:
     // bool Success = successful registration
     // string? Error = text of error (or null if everuthing is ok)

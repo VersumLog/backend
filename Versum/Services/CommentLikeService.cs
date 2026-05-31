@@ -8,10 +8,14 @@ namespace Versum.Services
     public class CommentLikeService : ICommentLikeService
     {
         private readonly ApplicationDbContext _db;
+        private readonly INotificationService _notificationService;
+        private readonly IProfileService _profileService;
 
-        public CommentLikeService(ApplicationDbContext db)
+        public CommentLikeService(ApplicationDbContext db, INotificationService notificationService, IProfileService profileService)
         {
             _db = db;
+            _notificationService = notificationService;
+            _profileService = profileService;
         }
 
         public async Task<(bool success, string? error)> ToggleLikeAsync(int userId, int postId)
@@ -21,7 +25,7 @@ namespace Versum.Services
 
             var existing = await _db.Likes
                 .FirstOrDefaultAsync(l => l.UserId == userId && l.PostId == postId);
-
+             
             if (existing != null)
             {
                 _db.Likes.Remove(existing);
@@ -31,6 +35,10 @@ namespace Versum.Services
             {
                 _db.Likes.Add(new Like { UserId = userId, PostId = postId });
                 post.LikesCount++;
+
+                //Notification
+                var username = await _profileService.GetUsernameByUserIdAsync(userId);
+                await _notificationService.SendLikeNotificationAsync(post.AuthorId, username ?? "Хтось", post.Title);
             }
 
             await _db.SaveChangesAsync();
@@ -70,6 +78,11 @@ namespace Versum.Services
             });
 
             post.CommentsCount++;
+
+            //Notification
+            var username = await _profileService.GetUsernameByUserIdAsync(userId);
+            await _notificationService.SendCommentNotificationAsync(post.AuthorId, username ?? "Хтось", post.Title);
+
             await _db.SaveChangesAsync();
             return (true, null);
         }
